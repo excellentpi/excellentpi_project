@@ -28,4 +28,14 @@ contract YourContract is ERC721Enumerable, Ownable {
 
         return output;
     }
+
+  function claim(uint256 tokenId) public { // Does this need Nonreentrant??
+      require(tokenId > 0 && tokenId < 7778, "Token ID invalid");
+      _safeMint(_msgSender(), tokenId);
+  }
+  
+  function ownerClaim(uint256 tokenId) public onlyOwner { // Does this need Nonreentrant??
+      require(tokenId > 7777 && tokenId < 8001, "Token ID invalid");
+      _safeMint(owner(), tokenId);
+  }
 }
