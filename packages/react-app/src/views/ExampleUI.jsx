@@ -319,7 +319,45 @@ export default function ExampleUI({
       */}
       <div style={{ padding: 16, width: 400, margin: "auto", marginTop: 64 }}>
         <Input type="text" onChange={onChange} value={value} />
-        <img source={tokenURI.image} />
+        <img src={tokenURI.image} style={{ height: "350px", width: "350px" }} />
+
+        {/* <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350">
+          <style>
+            {`.base {
+              fill: white;
+              font-family: monospace;
+              font-size: 14px;
+              overflow-wrap: break-word;
+              }
+              .blue {fill: #00B7A5;}
+              .orange {fill: #D85D00;}
+              .green {fill: #009568;}
+              .yellow {fill: #E39300;}
+              .red {fill: #CB003F;}
+              .white {fill: #9DA3A3;}
+              .grey {fill: #3C3F42;}
+              .purple {fill: #A431F8;}
+              .muted {fill: #282B30;}
+              .bright {fill: #0087A3;}
+              .italic {font-style: italic;}
+              `}
+          </style>
+          <rect width="100%" height="100%" fill="#0E1013" />
+
+          <line x1="30" y1="15" x2="30" y2="335" style="stroke: #282B30, strokeWidth: 1" />
+          <text x="10" y="20" class="base">
+            <tspan x="5" y="10" dy="22" class="muted">
+              38
+            </tspan>
+            <tspan x="30" y="10">
+              {chunks.map(chunk => (
+                <tspan x="30" dx="10" dy="22">
+                  {chunk}
+                </tspan>
+              ))}
+            </tspan>
+          </text>
+        </svg> */}
 
         <Card style={{ marginTop: 32 }}>
           <h2>Mint</h2>
@@ -380,10 +418,6 @@ export default function ExampleUI({
                   const STARTS_WITH = "data:application/json;base64,";
                   const buf = Buffer.from(rawTokenURI.slice(STARTS_WITH.length), "base64");
                   const b64 = rawTokenURI.slice(STARTS_WITH.length);
-                  console.log("GO");
-                  console.log(b64);
-                  console.log(buf.toString("base64"));
-                  console.log(window.atob(buf.toString("base64")).replace(/\s/g, ""));
                   let tokenURIJSON = JSON.parse(window.atob(buf.toString("base64")).replace(/\s/g, ""));
                   setTokenURI(tokenURIJSON);
                   console.log("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB", tokenURIJSON);
