@@ -26,7 +26,7 @@ contract YourContract is ERC721Enumerable, Ownable {
     if(bytes(a).length != bytes(b).length) {
         return false;
     } else {
-        return keccak256(a) == keccak256(b);
+        return keccak256(abi.encode(a)) == keccak256(abi.encode(b));
     }
 }
 
@@ -79,52 +79,52 @@ contract YourContract is ERC721Enumerable, Ownable {
     string[11] memory _orange = ["0","1","2","3","4","10","32","48","^0.8.0","this","0xf"];
     string[28] memory _red = ["abi","tokenId","interfaceId","from","to","owner","approved","operator","balance","_approved","data","account","payable","recipient","amount","success","target","errorMessage","value","returndata","msg","sender","temp","digits","length","i","type","super"];
     string[22] memory _grey = ["[","]","{","}","(",")",".",";","/","/","SPDX-License-Identifier:","MIT","Nice","+","-","*","=",">","<","&","|","!"];
-    string[] memory colouredWords = new string[](9);
+    svgWord[] memory colouredWords = new svgWord[](9);
 
     for(uint i; i < _words.length; i++) {
       for(uint j; j < _blue.length; j++) {
-        if (stringEquals(_words[i],_blue[j])) {
-          colouredWords[i] = new svgWord(abi.encodePacked('<tspan class="blue">',_words[i], '</tspan>', _words[i]));
+        if (keccak256(bytes(_words[i])) == keccak256(bytes(_blue[j]))) {
+          colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="blue">', _words[i], '</tspan>')), _words[i]);
         }
       }
       for(uint j; j < _green.length; j++) {
-        if (stringEquals(_words[i],_green[j])) {
-          colouredWords[i] = new svgWord(abi.encodePacked('<tspan class="green">',_words[i], '</tspan>', _words[i]));
+        if (keccak256(bytes(_words[i])) == keccak256(bytes(_green[j]))) {
+          colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="green">',_words[i], '</tspan>')), _words[i]);
         }
       }
       for(uint j; j < _italicPurple.length; j++) {
-        if (stringEquals(_words[i],_italicPurple[j])) {
-          colouredWords[i] = new svgWord(abi.encodePacked('<tspan class="purple" font-style="italic">',_words[i], '</tspan>', _words[i]));
+        if (keccak256(bytes(_words[i])) == keccak256(bytes(_italicPurple[j]))) {
+          colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="purple" font-style="italic">',_words[i], '</tspan>')), _words[i]);
         }
       }
       for(uint j; j < _purple.length; j++) {
-        if (stringEquals(_words[i],_purple[j])) {
-          colouredWords[i] = new svgWord(abi.encodePacked('<tspan class="purple">',_words[i], '</tspan>', _words[i]));
+        if (keccak256(bytes(_words[i])) == keccak256(bytes(_purple[j]))) {
+          colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="purple">',_words[i], '</tspan>')), _words[i]);
         }
       }
       for(uint j; j < _italicYellow.length; j++) {
-        if (stringEquals(_words[i],_italicYellow[j])) {
-          colouredWords[i] = new svgWord(abi.encodePacked('<tspan class="yellow" font-style="italic">',_words[i], '</tspan>', _words[i]));
+        if (keccak256(bytes(_words[i])) == keccak256(bytes(_italicYellow[j]))) {
+          colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="yellow" font-style="italic">',_words[i], '</tspan>')), _words[i]);
         }
       }
       for(uint j; j < _yellow.length; j++) {
-        if (stringEquals(_words[i],_yellow[j])) {
-          colouredWords[i] = new svgWord(abi.encodePacked('<tspan class="yellow">',_words[i], '</tspan>', _words[i]));
+        if (keccak256(bytes(_words[i])) == keccak256(bytes(_yellow[j]))) {
+          colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="yellow">',_words[i], '</tspan>')), _words[i]);
         }
       }
       for(uint j; j < _orange.length; j++) {
-        if (stringEquals(_words[i],_orange[j])) {
-          colouredWords[i] = new svgWord(abi.encodePacked('<tspan class="orange">',_words[i], '</tspan>', _words[i]));
+        if (keccak256(bytes(_words[i])) == keccak256(bytes(_orange[j]))) {
+          colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="orange">',_words[i], '</tspan>')), _words[i]);
         }
       }
       for(uint j; j < _red.length; j++) {
-        if (stringEquals(_words[i],_red[j])) {
-          colouredWords[i] = new svgWord(abi.encodePacked('<tspan class="red">',_words[i], '</tspan>', _words[i]));
+        if (keccak256(bytes(_words[i])) == keccak256(bytes(_red[j]))) {
+          colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="red">',_words[i], '</tspan>')), _words[i]);
         }
       }
       for(uint j; j < _grey.length; j++) {
-        if (stringEquals(_words[i], _grey[j])) {
-          colouredWords[i] = new svgWord(abi.encodePacked('<tspan class="grey">',_words[i], '</tspan>', _words[i]));
+        if (keccak256(bytes(_words[i])) == keccak256(bytes(_grey[j]))) {
+          colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="grey">',_words[i], '</tspan>')), _words[i]);
         }
       }
 
@@ -133,29 +133,39 @@ contract YourContract is ERC721Enumerable, Ownable {
   }
 
   function chunker(svgWord[] memory _words) private pure returns (string[] memory) {
-    string[] memory _chunks;
+    string[][] memory _chunks;
     // const _words = _wordsMap[0];
     // const lengths = _wordsMap[1];
     uint _max_length = 35;
     uint _sum = 0;
     uint _chunk = 0;
     for (uint i = 0; i < _words.length; i++) {
-      if (_sum + _words[i].name.length >= _max_length) {
+      if (_sum + bytes(_words[i].word).length >= _max_length) {
         _sum = 0;
         _chunk += 1;
-        if (_words.name != " ") {
-          _chunks[_chunk] = [_words[i].svg];
+        if (keccak256(bytes(_words[i].word)) != keccak256(bytes(" "))) {
+          string[] memory svg = new string[](1);
+          svg[0] = _words[i].svg;
+          _chunks[_chunk] = svg;
         }
       } else {
-        if (_chunks[_chunk]) {
-          _chunks[_chunk].push(_words[i].svg);
-        } else if (_words.name != " ") {
-          _chunks[_chunk] = [_words[i].svg];
+        if (_chunks[_chunk].length > 1) {
+          _chunks[_chunk][_chunks[_chunk].length] = (_words[i].svg);
+        } else if (keccak256(bytes(_words[i].word)) != keccak256(bytes(" "))) {
+          string[] memory svg = new string[](1);
+          svg[0] = _words[i].svg;
+          _chunks[_chunk] = svg;
         }
       }
-      _sum += _words[i].name.length;
+      _sum += bytes(_words[i].word).length;
     }
-    return _chunks;
+    string[] memory _output;
+    for (uint256 i; i < _chunks.length; i++) {
+      for (uint256 j; j < _chunks[i].length - 1; j++) {
+        _output[i] = string(abi.encodePacked(_output[i], _chunks[i][j], _chunks[i][j + 1]));
+      }
+    }
+    return _output;
   }
 
   function tokenURI(uint256 tokenId) override public view returns (string memory) {
