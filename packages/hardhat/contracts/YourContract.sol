@@ -22,14 +22,6 @@ contract YourContract is ERC721Enumerable, Ownable {
     string word;
   }
 
-  function stringEquals(string memory a, string memory b) internal returns (bool) {
-    if(bytes(a).length != bytes(b).length) {
-        return false;
-    } else {
-        return keccak256(abi.encode(a)) == keccak256(abi.encode(b));
-    }
-}
-
   function wordifier(string memory _text) private pure returns (string[] memory) {
     string[] memory _words = new string[](34);
     _words[0] = "string";
@@ -79,52 +71,61 @@ contract YourContract is ERC721Enumerable, Ownable {
     string[11] memory _orange = ["0","1","2","3","4","10","32","48","^0.8.0","this","0xf"];
     string[28] memory _red = ["abi","tokenId","interfaceId","from","to","owner","approved","operator","balance","_approved","data","account","payable","recipient","amount","success","target","errorMessage","value","returndata","msg","sender","temp","digits","length","i","type","super"];
     string[22] memory _grey = ["[","]","{","}","(",")",".",";","/","/","SPDX-License-Identifier:","MIT","Nice","+","-","*","=",">","<","&","|","!"];
-    svgWord[] memory colouredWords = new svgWord[](9);
+    svgWord[] memory colouredWords = new svgWord[](_words.length);
 
     for(uint i; i < _words.length; i++) {
       for(uint j; j < _blue.length; j++) {
         if (keccak256(bytes(_words[i])) == keccak256(bytes(_blue[j]))) {
           colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="blue">', _words[i], '</tspan>')), _words[i]);
+          break;
         }
       }
       for(uint j; j < _green.length; j++) {
         if (keccak256(bytes(_words[i])) == keccak256(bytes(_green[j]))) {
           colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="green">',_words[i], '</tspan>')), _words[i]);
+          break;
         }
       }
       for(uint j; j < _italicPurple.length; j++) {
         if (keccak256(bytes(_words[i])) == keccak256(bytes(_italicPurple[j]))) {
           colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="purple" font-style="italic">',_words[i], '</tspan>')), _words[i]);
+          break;
         }
       }
       for(uint j; j < _purple.length; j++) {
         if (keccak256(bytes(_words[i])) == keccak256(bytes(_purple[j]))) {
           colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="purple">',_words[i], '</tspan>')), _words[i]);
+          break;
         }
       }
       for(uint j; j < _italicYellow.length; j++) {
         if (keccak256(bytes(_words[i])) == keccak256(bytes(_italicYellow[j]))) {
           colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="yellow" font-style="italic">',_words[i], '</tspan>')), _words[i]);
+          break;
         }
       }
       for(uint j; j < _yellow.length; j++) {
         if (keccak256(bytes(_words[i])) == keccak256(bytes(_yellow[j]))) {
           colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="yellow">',_words[i], '</tspan>')), _words[i]);
+          break;
         }
       }
       for(uint j; j < _orange.length; j++) {
         if (keccak256(bytes(_words[i])) == keccak256(bytes(_orange[j]))) {
           colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="orange">',_words[i], '</tspan>')), _words[i]);
+          break;
         }
       }
       for(uint j; j < _red.length; j++) {
         if (keccak256(bytes(_words[i])) == keccak256(bytes(_red[j]))) {
           colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="red">',_words[i], '</tspan>')), _words[i]);
+          break;
         }
       }
       for(uint j; j < _grey.length; j++) {
         if (keccak256(bytes(_words[i])) == keccak256(bytes(_grey[j]))) {
           colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="grey">',_words[i], '</tspan>')), _words[i]);
+          break;
         }
       }
 
@@ -132,37 +133,50 @@ contract YourContract is ERC721Enumerable, Ownable {
     return colouredWords;
   }
 
-  function chunker(svgWord[] memory _words) private pure returns (string[] memory) {
-    string[][] memory _chunks;
+  function chunker(svgWord[] memory _words) private view returns (string[] memory) {
+    uint _maxWordsPerLine = 40;
+    uint _maxlines = 5;
+    string[][] memory _chunks = new string[][](_maxlines);
+    // thing.push(true);
     // const _words = _wordsMap[0];
     // const lengths = _wordsMap[1];
     uint _max_length = 35;
     uint _sum = 0;
     uint _chunk = 0;
+    uint _wordsInChunk = 0;
     for (uint i = 0; i < _words.length; i++) {
       if (_sum + bytes(_words[i].word).length >= _max_length) {
         _sum = 0;
+        _wordsInChunk = 0;
         _chunk += 1;
         if (keccak256(bytes(_words[i].word)) != keccak256(bytes(" "))) {
-          string[] memory svg = new string[](1);
+          string[] memory svg = new string[](_maxWordsPerLine);
           svg[0] = _words[i].svg;
           _chunks[_chunk] = svg;
+          _wordsInChunk += 1;
         }
       } else {
-        if (_chunks[_chunk].length > 1) {
-          _chunks[_chunk][_chunks[_chunk].length] = (_words[i].svg);
+        if (_chunks[_chunk].length > 0) {
+          console.log("words in chunk: %s", _wordsInChunk);
+          // console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! %s", _chunks[_chunk]);
+          _chunks[_chunk][_wordsInChunk] = _words[i].svg;
+          _wordsInChunk += 1;
         } else if (keccak256(bytes(_words[i].word)) != keccak256(bytes(" "))) {
-          string[] memory svg = new string[](1);
+          string[] memory svg = new string[](_maxWordsPerLine);
           svg[0] = _words[i].svg;
           _chunks[_chunk] = svg;
+          _wordsInChunk += 1;
         }
       }
       _sum += bytes(_words[i].word).length;
     }
-    string[] memory _output;
+    string[] memory _output = new string[](_maxlines);
     for (uint256 i; i < _chunks.length; i++) {
-      for (uint256 j; j < _chunks[i].length - 1; j++) {
-        _output[i] = string(abi.encodePacked(_output[i], _chunks[i][j], _chunks[i][j + 1]));
+      if (_chunks[i].length > 0) {
+        for (uint256 j; j < _chunks[i].length; j++) {
+          console.log("output: %s", _output[i]);
+          _output[i] = string(abi.encodePacked(_output[i], _chunks[i][j]));
+        }
       }
     }
     return _output;

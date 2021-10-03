@@ -142,9 +142,9 @@ abstract contract ERC165 is IERC165 {
     }
 }
 library Base64 {
-    string internal constant TABLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    string internal constant TABLE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     function encode(bytes memory data) internal pure returns (string memory) {
-        if (data.length == 0) return '';
+        if (data.length == 0) return "";
         string memory table = TABLE;
         uint256 encodedLen = 4 * ((data.length + 2) / 3);
         string memory result = new string(encodedLen + 32);
