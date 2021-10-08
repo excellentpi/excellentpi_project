@@ -19,9 +19,8 @@ export default function ExampleUI({
   const [mintCount, setMintCount] = useState(1);
   const [tokenID, settokenID] = useState(1);
 
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState("function tokenURI(uint256 tokenId) external view returns (string memory);");
   const [tokenURI, setTokenURI] = useState({});
-  const text = "string memory output = string(abi.encodePacked(parts[0], parts[1], parts[2], parts[3]));";
 
   const parseText = text => {
     const words = [];
@@ -257,10 +256,6 @@ export default function ExampleUI({
       colours[i] = colour(words[i]);
       lengths[i] = words[i].length;
     }
-    console.log(
-      "WORDS: ",
-      colours.map(word => word.props?.children),
-    );
     return [colours, lengths];
   };
 
@@ -322,6 +317,53 @@ export default function ExampleUI({
         <img src={tokenURI.image} style={{ height: "350px", width: "350px" }} />
 
         {/* <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350">
+          <style>{`.base {fill: #9DA3A3; font-family: monospace; font-size: 14px;} .blue {fill: #00B7A5;} .orange {fill: #D85D00;} .green {fill: #009568;} .yellow {fill: #E39300;} .red {fill: #CB003F;} .white {fill: #9DA3A3;} .grey {fill: #3C3F42;} .purple {fill: #A431F8;} .muted {fill: #282B30;} .bright {fill: #0087A3;} .italic {font-style: italic;}`}</style>
+          <rect width="100%" height="100%" fill="#0E1013" />
+          <line x1="35" y1="15" x2="35" y2="335" stroke="#282B30" />
+          <text x="10" y="20" class="base">
+            <tspan x="5" y="10" dy="22" class="muted">
+              132
+            </tspan>
+            <tspan x="30" y="10">
+              <tspan x="35" dx="10" dy="22">
+                <tspan class="white">buffer</tspan>
+                <tspan class="grey">[</tspan>
+                <tspan class="red">i</tspan>
+                <tspan class="grey">]</tspan>
+                <tspan class="white"></tspan>
+                <tspan class="white"> </tspan>
+                <tspan class="white"></tspan>
+                <tspan class="grey">=</tspan>
+                <tspan class="white"></tspan>
+                <tspan class="white"> </tspan>
+                <tspan class="white">_HEX_SYMBOLS</tspan>
+                <tspan class="grey">[</tspan>
+                <tspan class="red">value</tspan>
+                <tspan class="white"> </tspan>
+                <tspan class="white"></tspan>
+                <tspan class="grey">&</tspan>
+                <tspan class="white"></tspan>
+                <tspan class="white"> </tspan>
+              </tspan>
+              <tspan x="35" dx="10" dy="22">
+                <tspan class="orange">0xf</tspan>
+                <tspan class="grey">]</tspan>
+                <tspan class="white"></tspan>
+                <tspan class="grey">;</tspan>
+              </tspan>
+              <tspan x="35" dx="10" dy="22"></tspan>
+              <tspan x="35" dx="10" dy="22"></tspan>
+              <tspan x="35" dx="10" dy="22"></tspan>
+              <tspan x="35" dx="10" dy="22"></tspan>
+              <tspan x="35" dx="10" dy="22"></tspan>
+              <tspan x="35" dx="10" dy="22"></tspan>
+              <tspan x="35" dx="10" dy="22"></tspan>
+              <tspan x="35" dx="10" dy="22"></tspan>
+            </tspan>
+          </text>
+        </svg> */}
+
+        <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350">
           <style>
             {`.base {
               fill: white;
@@ -343,11 +385,10 @@ export default function ExampleUI({
               `}
           </style>
           <rect width="100%" height="100%" fill="#0E1013" />
-
-          <line x1="30" y1="15" x2="30" y2="335" style="stroke: #282B30, strokeWidth: 1" />
+          <line x1="35" y1="15" x2="35" y2="335" style={{ stroke: "#282B30", strokeWidth: 1 }} />
           <text x="10" y="20" class="base">
             <tspan x="5" y="10" dy="22" class="muted">
-              38
+              382
             </tspan>
             <tspan x="30" y="10">
               {chunks.map(chunk => (
@@ -357,7 +398,51 @@ export default function ExampleUI({
               ))}
             </tspan>
           </text>
-        </svg> */}
+          {chunks.map((chunk, i) => (
+            <rect x="40" y={20 + 22 * i} width="300" height="15" fill="#0E1013">
+              <animate
+                attributeName="x"
+                values="0;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4"
+                dur="0.1s"
+                repeatCount="35"
+                additive="sum"
+                accumulate="sum"
+                fill="freeze"
+                begin={`${i * 0.1 * 35}s`}
+              />
+            </rect>
+          ))}
+        </svg>
+
+        <Card style={{ marginTop: 32 }}>
+          <h2>TokenURI</h2>
+          <Divider />
+          <div style={{ margin: 8 }}>
+            <Input
+              type="number"
+              onChange={e => {
+                settokenID(e.target.value);
+              }}
+            />
+            <Button
+              style={{ marginTop: 8 }}
+              onClick={async () => {
+                let rawTokenURI = await readContracts.YourContract.tokenURI(tokenID);
+
+                if (rawTokenURI) {
+                  const STARTS_WITH = "data:application/json;base64,";
+                  const buf = Buffer.from(rawTokenURI.slice(STARTS_WITH.length), "base64");
+                  const b64 = rawTokenURI.slice(STARTS_WITH.length);
+                  let tokenURIJSON = JSON.parse(window.atob(buf.toString("base64")).replace(/\s/g, ""));
+                  setTokenURI(tokenURIJSON);
+                }
+              }}
+            >
+              TokenURI
+            </Button>
+          </div>
+          <Divider />
+        </Card>
 
         <Card style={{ marginTop: 32 }}>
           <h2>Mint</h2>
@@ -394,47 +479,6 @@ export default function ExampleUI({
               }}
             >
               Claim {mintCount} Non-Fungible NFT Token{mintCount > 1 ? "s" : ""}
-            </Button>
-          </div>
-          <Divider />
-        </Card>
-
-        <Card style={{ marginTop: 32 }}>
-          <h2>TokenURI</h2>
-          <Divider />
-          <div style={{ margin: 8 }}>
-            <Input
-              type="number"
-              onChange={e => {
-                settokenID(e.target.value);
-              }}
-            />
-            <Button
-              style={{ marginTop: 8 }}
-              onClick={async () => {
-                let rawTokenURI = await readContracts.YourContract.tokenURI(tokenID);
-
-                if (rawTokenURI) {
-                  const STARTS_WITH = "data:application/json;base64,";
-                  const buf = Buffer.from(rawTokenURI.slice(STARTS_WITH.length), "base64");
-                  const b64 = rawTokenURI.slice(STARTS_WITH.length);
-                  let tokenURIJSON = JSON.parse(window.atob(buf.toString("base64")).replace(/\s/g, ""));
-                  setTokenURI(tokenURIJSON);
-                  console.log("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB", tokenURIJSON);
-                }
-                // console.log("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
-                // const result = readContracts.YourContract.tokenURI(tokenID);
-                // // setResult(Json.parse(result));
-                // // console.log("!!!!!!sdfsdf!!!!!!!!!!!!!!!!!!!!!!!!:", Json.parse(result));
-                // // });
-                // result.then(update => {
-                //   console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!:", update);
-                //   console.log("!-!-!-!-!-!-!-!-!-!-!-!!-!-!-!-!-!-!-!-!!-!-!-!-!-!-!-!-!:", JSON.parse(result));
-                //   setResult(JSON.parse(result));
-                // });
-              }}
-            >
-              TokenURI
             </Button>
           </div>
           <Divider />

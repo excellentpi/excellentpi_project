@@ -7,14 +7,16 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "./base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
  
+interface IContractString {
+  function text(uint) external view returns (string memory);
+}
 
- 
 contract YourContract is ERC721Enumerable, Ownable {
  
   uint public constant MAX_TOKENS = 1000;
   uint256 private _maxPerTx = 5; // Set to one higher than actual, to save gas on lte/gte checks.
 
-  constructor() ERC721("NonFungibleNFT", "NFNFT") Ownable() {}
+  IContractString contractString;
 
   string[51] _blue = ["solidity","encodePacked","encode","ownerOf","toString","supportsInterface","balanceOf","name","symbol","_exists","_baseURI","approve","_msgSender","_approve","Approve","getApproved","isApprovedForAll","setApprovalForAll","ApprovalForAll","Approval","transferFrom","_isApprovedOrOwner","safeTransferFrom","safeTransferFrom","_safeTransfer","_transfer","_checkOnERC721Received","IERC721Receiver","onERC721Received","_safeMint","_mint","_beforeTokenTransfer","Transfer","_burn","_transfer","isContract","add","mload","tokenURI","extcodesize","sendValue","functionCall","functionCallWithValue","call","_verifyCallResult","functionStaticCall","staticcall","functionDelegateCall","delegatecall","_msgData","toHexString"];
   string[3] _green = ["function", "interface", '"'];
@@ -30,6 +32,11 @@ contract YourContract is ERC721Enumerable, Ownable {
     string svg;
     string word;
   }
+
+  constructor() ERC721("NonFungibleNFT", "NFNFT") Ownable() {
+    contractString = IContractString(address(0xffa7CA1AEEEbBc30C874d32C7e22F052BbEa0429));
+  }
+
 
   function getSlice(uint256 begin, uint256 end, string memory text) public view returns (string memory) {
       bytes memory a = new bytes(end-begin);
@@ -83,12 +90,30 @@ contract YourContract is ERC721Enumerable, Ownable {
             mstore(stringData, length)
         }
     }
-}
+  }
+
+  // function lineifier(uint tokenId) private view returns (string memory) {
+  //   string[] memory lines = new string[](528);
+  //   uint lastIndex = 0;
+  //   uint lineCount = 0;
+  //   for (uint i; i < bytes(contractString.text()).length; i++) {
+  //     if (bytes(contractString.text())[i] == "$") {
+  //       lineCount += 1;
+  //       if (lineCount == tokenId) {
+  //         console.log("line: %s", getSlice(lastIndex, i, contractString.text()));
+  //         return getSlice(lastIndex, i, contractString.text());
+  //       }
+  //       lastIndex = i + 1;
+  //     }
+  //   }
+  //   return lines[tokenId];
+  // }
 
   function wordifier(string memory _text) private view returns (string[] memory) {
-    string[] memory _tempWords = new string[](100);
+    string[] memory _tempWords = new string[](150);
     uint lastIndex = 0;
     uint wordCount = 0;
+    bool removeWhiteSpace = true;
     for (uint i = 0; i < bytes(_text).length; i++) {
       if (
         bytes(_text)[i] == " " ||
@@ -112,9 +137,13 @@ contract YourContract is ERC721Enumerable, Ownable {
         bytes(_text)[i] == ";" ||
         bytes(_text)[i] == ","
       ) {
+        if (bytes(_text)[i] == " " && removeWhiteSpace) {
+          lastIndex = i+1;
+          continue;
+        }
+        removeWhiteSpace = false;
         _tempWords[wordCount] = getSlice(lastIndex, i, _text);
         console.log("word: %s", _tempWords[wordCount]);
-        
         bytes memory a = new bytes(1);
         if (bytes(_text)[i] == ">") {
           _tempWords[wordCount + 1] = "&gt;";
@@ -129,6 +158,9 @@ contract YourContract is ERC721Enumerable, Ownable {
         console.log("word: %s", _tempWords[wordCount+1]);
         wordCount += 2;
         lastIndex = i + 1;
+      }
+      else {
+        removeWhiteSpace = false;
       }
     }
     if (lastIndex < bytes(_text).length - 1) {
@@ -251,7 +283,7 @@ contract YourContract is ERC721Enumerable, Ownable {
 
   function chunker(svgWord[] memory _words) private view returns (string[] memory) {
     uint _maxWordsPerLine = 100;
-    uint _maxlines = 5;
+    uint _maxlines = 10;
     string[][] memory _chunks = new string[][](_maxlines);
     // thing.push(true);
     // const _words = _wordsMap[0];
@@ -301,12 +333,14 @@ contract YourContract is ERC721Enumerable, Ownable {
 
   function tokenURI(uint256 tokenId) override public view returns (string memory) {
         string memory _text = "_svgMiddle = string(abi.encodePacked(_svgMiddle, '<tspan x='30' dx='10' dy='22'>', _chunks[i], '</tspan>'));"; 
-        string memory _svgStart = string('<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base {fill: #9DA3A3; font-family: monospace; font-size: 14px;} .blue {fill: #00B7A5;} .orange {fill: #D85D00;} .green {fill: #009568;} .yellow {fill: #E39300;} .red {fill: #CB003F;} .white {fill: #9DA3A3;} .grey {fill: #3C3F42;} .purple {fill: #A431F8;} .muted {fill: #282B30;} .bright {fill: #0087A3;} .italic {font-style: italic;}</style><rect width="100%" height="100%" fill="#0E1013" /><line x1="30" y1="15" x2="30" y2="335" stroke="#282B30" /><text x="10" y="20" class="base"><tspan x="5" y="10" dy="22" class="muted">38</tspan><tspan x="30" y="10">');
+        string memory _svgStart = string('<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base {fill: #9DA3A3; font-family: monospace; font-size: 14px;} .blue {fill: #00B7A5;} .orange {fill: #D85D00;} .green {fill: #009568;} .yellow {fill: #E39300;} .red {fill: #CB003F;} .white {fill: #9DA3A3;} .grey {fill: #3C3F42;} .purple {fill: #A431F8;} .muted {fill: #282B30;} .bright {fill: #0087A3;} .italic {font-style: italic;}</style><rect width="100%" height="100%" fill="#0E1013" /><line x1="35" y1="15" x2="35" y2="335" stroke="#282B30" /><text x="10" y="20" class="base"><tspan x="5" y="10" dy="22" class="muted">');
+        string memory _lineNumber = Strings.toString(tokenId);
+        string memory _LineNumEnd = string('</tspan><tspan x="30" y="10">');
         string memory _svgEnd = string('</tspan></text></svg>');
-        string[] memory _chunks = chunker(colourifier(wordifier(_text)));
+        string[] memory _chunks = chunker(colourifier(wordifier(contractString.text(tokenId-1))));
         string memory _svgMiddle = "";
         for (uint256 i; i < _chunks.length; i++) {
-          _svgMiddle = string(abi.encodePacked(_svgMiddle, '<tspan x="30" dx="10" dy="22">', _chunks[i], '</tspan>'));
+          _svgMiddle = string(abi.encodePacked(_svgMiddle, '<tspan x="35" dx="10" dy="22">', _chunks[i], '</tspan>'));
         }
         // string memory json = string(abi.encodePacked('{"image": "', svg, '"}'));
 
@@ -315,13 +349,15 @@ contract YourContract is ERC721Enumerable, Ownable {
             string(
               abi.encodePacked(
                 '{"image": "data:image/svg+xml;base64,', 
-                Base64.encode(bytes(abi.encodePacked(_svgStart, _svgMiddle, _svgEnd))), 
+                Base64.encode(bytes(abi.encodePacked(_svgStart, _lineNumber, _LineNumEnd,_svgMiddle, _svgEnd))), 
                 '"}'
               )
             )
           )
         );
         
+        console.log(string(abi.encodePacked(_svgStart, _lineNumber, _LineNumEnd,_svgMiddle, _svgEnd)));
+
         string memory _output = string(
           abi.encodePacked('data:application/json;base64,', _json)
         );
