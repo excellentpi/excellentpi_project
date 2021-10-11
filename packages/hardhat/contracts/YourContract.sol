@@ -320,7 +320,7 @@ contract YourContract is ERC721Enumerable, Ownable {
       }
       _sum += bytes(_words[i].word).length;
     }
-    string[] memory _output = new string[](_maxlines);
+    string[] memory _output = new string[](_chunks.length);
     for (uint256 i; i < _chunks.length; i++) {
       if (_chunks[i].length > 0) {
         for (uint256 j; j < _chunks[i].length; j++) {
@@ -331,32 +331,48 @@ contract YourContract is ERC721Enumerable, Ownable {
     return _output;
   }
 
+  function svgGenerator(uint256 tokenId) private view returns (string memory){
+    string memory _text = "_svgMiddle = string(abi.encodePacked(_svgMiddle, '<tspan x='30' dx='10' dy='22'>', _chunks[i], '</tspan>'));"; 
+    string memory _svgStart = string('<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base {fill: #9DA3A3; font-family: monospace; font-size: 14px;} .blue {fill: #00B7A5;} .orange {fill: #D85D00;} .green {fill: #009568;} .yellow {fill: #E39300;} .red {fill: #CB003F;} .white {fill: #9DA3A3;} .grey {fill: #3C3F42;} .purple {fill: #A431F8;} .muted {fill: #282B30;} .bright {fill: #0087A3;} .italic {font-style: italic;}</style><rect width="100%" height="100%" fill="#0E1013" /><line x1="35" y1="15" x2="35" y2="335" stroke="#282B30" /><text x="10" y="20" class="base"><tspan x="5" y="10" dy="22" class="muted">');
+    string memory _lineNumber = Strings.toString(tokenId);
+    string memory _LineNumEnd = string('</tspan><tspan x="30" y="10">');
+    string memory _svgtext = "";
+    string[] memory _chunks = chunker(colourifier(wordifier(contractString.text(tokenId-1))));
+    for (uint256 i; i < _chunks.length; i++) {
+      _svgtext = string(abi.encodePacked(_svgtext, '<tspan x="35" dx="10" dy="22">', _chunks[i], '</tspan>'));
+    }
+    string memory _textEnd = string('</tspan></text>');
+
+    string memory _animation = "";
+    for (uint256 i; i < _chunks.length; i++) {
+      _animation = string(abi.encodePacked(_animation, '<rect x="45" y="', Strings.toString(20 + 22 * i), '" width="300" height="15" fill="#0E1013"><animate attributeName="x" values="0;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4" dur="0.1s" repeatCount="35" additive="sum" accumulate="sum" fill="freeze" begin="',Strings.toString((i * 35)/ 10),'s"/></rect>'));
+    }
+    string memory _cursor = "";
+    for (uint256 i; i < _chunks.length; i++) {
+      _cursor = string(abi.encodePacked(_cursor, '<rect x="45" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#E39300"><animate attributeName="x" values="0;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4" dur="0.1s" repeatCount="35" additive="sum" accumulate="sum" fill="freeze" begin="',Strings.toString((i * 35)/ 10),'s"/></rect>'));
+    }
+
+    string memory _svgEnd = string('</svg>');
+
+    return string(abi.encodePacked(_svgStart, _lineNumber, _LineNumEnd, _svgtext, _textEnd, _animation, _cursor, _svgEnd));
+  }
+
   function tokenURI(uint256 tokenId) override public view returns (string memory) {
-        string memory _text = "_svgMiddle = string(abi.encodePacked(_svgMiddle, '<tspan x='30' dx='10' dy='22'>', _chunks[i], '</tspan>'));"; 
-        string memory _svgStart = string('<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base {fill: #9DA3A3; font-family: monospace; font-size: 14px;} .blue {fill: #00B7A5;} .orange {fill: #D85D00;} .green {fill: #009568;} .yellow {fill: #E39300;} .red {fill: #CB003F;} .white {fill: #9DA3A3;} .grey {fill: #3C3F42;} .purple {fill: #A431F8;} .muted {fill: #282B30;} .bright {fill: #0087A3;} .italic {font-style: italic;}</style><rect width="100%" height="100%" fill="#0E1013" /><line x1="35" y1="15" x2="35" y2="335" stroke="#282B30" /><text x="10" y="20" class="base"><tspan x="5" y="10" dy="22" class="muted">');
-        string memory _lineNumber = Strings.toString(tokenId);
-        string memory _LineNumEnd = string('</tspan><tspan x="30" y="10">');
-        string memory _svgEnd = string('</tspan></text></svg>');
-        string[] memory _chunks = chunker(colourifier(wordifier(contractString.text(tokenId-1))));
-        string memory _svgMiddle = "";
-        for (uint256 i; i < _chunks.length; i++) {
-          _svgMiddle = string(abi.encodePacked(_svgMiddle, '<tspan x="35" dx="10" dy="22">', _chunks[i], '</tspan>'));
-        }
-        // string memory json = string(abi.encodePacked('{"image": "', svg, '"}'));
+        
+        string memory svg = svgGenerator(tokenId);
+
 
         string memory _json = Base64.encode(
           bytes(
             string(
               abi.encodePacked(
-                '{"image": "data:image/svg+xml;base64,', 
-                Base64.encode(bytes(abi.encodePacked(_svgStart, _lineNumber, _LineNumEnd,_svgMiddle, _svgEnd))), 
-                '"}'
+                '{"image": "data:image/svg+xml;base64,', Base64.encode(bytes(svg)), '"}'
               )
             )
           )
         );
         
-        console.log(string(abi.encodePacked(_svgStart, _lineNumber, _LineNumEnd,_svgMiddle, _svgEnd)));
+        console.log(svg);
 
         string memory _output = string(
           abi.encodePacked('data:application/json;base64,', _json)

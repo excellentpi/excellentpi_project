@@ -260,7 +260,7 @@ export default function ExampleUI({
   };
 
   const chunkWords = wordsMap => {
-    const chunks = [];
+    const chunks = [[], []];
     const words = wordsMap[0];
     const lengths = wordsMap[1];
     const max_length = 35;
@@ -281,19 +281,18 @@ export default function ExampleUI({
         // }
         // chunks[chunk].push(halfWord);
         sum = 0;
-        console.log(
-          "CHUNKS: ",
-          chunks[chunk].map(word => word.props?.children),
-        );
         chunk += 1;
         if (words[i].props.children != " ") {
-          chunks[chunk] = [words[i]];
+          chunks[0][chunk] = [words[i]];
+          chunks[1][chunk] = lengths[i];
         }
       } else {
-        if (chunks[chunk]) {
-          chunks[chunk].push(words[i]);
+        if (chunks[0][chunk]) {
+          chunks[0][chunk].push(words[i]);
+          chunks[1][chunk] += lengths[i];
         } else if (words[i].props.children != " ") {
-          chunks[chunk] = [words[i]];
+          chunks[0][chunk] = [words[i]];
+          chunks[1][chunk] = lengths[i];
         }
       }
       sum += lengths[i];
@@ -314,54 +313,7 @@ export default function ExampleUI({
       */}
       <div style={{ padding: 16, width: 400, margin: "auto", marginTop: 64 }}>
         <Input type="text" onChange={onChange} value={value} />
-        <img src={tokenURI.image} style={{ height: "350px", width: "350px" }} />
-
-        {/* <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350">
-          <style>{`.base {fill: #9DA3A3; font-family: monospace; font-size: 14px;} .blue {fill: #00B7A5;} .orange {fill: #D85D00;} .green {fill: #009568;} .yellow {fill: #E39300;} .red {fill: #CB003F;} .white {fill: #9DA3A3;} .grey {fill: #3C3F42;} .purple {fill: #A431F8;} .muted {fill: #282B30;} .bright {fill: #0087A3;} .italic {font-style: italic;}`}</style>
-          <rect width="100%" height="100%" fill="#0E1013" />
-          <line x1="35" y1="15" x2="35" y2="335" stroke="#282B30" />
-          <text x="10" y="20" class="base">
-            <tspan x="5" y="10" dy="22" class="muted">
-              132
-            </tspan>
-            <tspan x="30" y="10">
-              <tspan x="35" dx="10" dy="22">
-                <tspan class="white">buffer</tspan>
-                <tspan class="grey">[</tspan>
-                <tspan class="red">i</tspan>
-                <tspan class="grey">]</tspan>
-                <tspan class="white"></tspan>
-                <tspan class="white"> </tspan>
-                <tspan class="white"></tspan>
-                <tspan class="grey">=</tspan>
-                <tspan class="white"></tspan>
-                <tspan class="white"> </tspan>
-                <tspan class="white">_HEX_SYMBOLS</tspan>
-                <tspan class="grey">[</tspan>
-                <tspan class="red">value</tspan>
-                <tspan class="white"> </tspan>
-                <tspan class="white"></tspan>
-                <tspan class="grey">&</tspan>
-                <tspan class="white"></tspan>
-                <tspan class="white"> </tspan>
-              </tspan>
-              <tspan x="35" dx="10" dy="22">
-                <tspan class="orange">0xf</tspan>
-                <tspan class="grey">]</tspan>
-                <tspan class="white"></tspan>
-                <tspan class="grey">;</tspan>
-              </tspan>
-              <tspan x="35" dx="10" dy="22"></tspan>
-              <tspan x="35" dx="10" dy="22"></tspan>
-              <tspan x="35" dx="10" dy="22"></tspan>
-              <tspan x="35" dx="10" dy="22"></tspan>
-              <tspan x="35" dx="10" dy="22"></tspan>
-              <tspan x="35" dx="10" dy="22"></tspan>
-              <tspan x="35" dx="10" dy="22"></tspan>
-              <tspan x="35" dx="10" dy="22"></tspan>
-            </tspan>
-          </text>
-        </svg> */}
+        <img src={tokenURI.image} />
 
         <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350">
           <style>
@@ -391,14 +343,14 @@ export default function ExampleUI({
               382
             </tspan>
             <tspan x="30" y="10">
-              {chunks.map(chunk => (
+              {chunks[0].map(chunk => (
                 <tspan x="30" dx="10" dy="22">
                   {chunk}
                 </tspan>
               ))}
             </tspan>
           </text>
-          {chunks.map((chunk, i) => (
+          {chunks[0].map((chunk, i) => (
             <rect x="40" y={20 + 22 * i} width="300" height="15" fill="#0E1013">
               <animate
                 attributeName="x"
@@ -408,6 +360,30 @@ export default function ExampleUI({
                 additive="sum"
                 accumulate="sum"
                 fill="freeze"
+                begin={`${i * 0.1 * 35}s`}
+              />
+            </rect>
+          ))}
+          {chunks[0].map((chunk, i) => (
+            <rect x="-20" y={20 + 22 * i} width="10" height="15" fill="#E39300">
+              <animate
+                attributeName="x"
+                values={() => {
+                  let output = "0";
+                  for (let i = 0; i < chunks[1][i]; i++) {
+                    output = `${output};8.4`;
+                  }
+                  console.log(output);
+                  return output.toString();
+                }}
+                // values={
+                //   "40;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4"
+                // }
+                dur="0.1s"
+                repeatCount="35"
+                additive="sum"
+                accumulate="sum"
+                // fill="freeze"
                 begin={`${i * 0.1 * 35}s`}
               />
             </rect>
