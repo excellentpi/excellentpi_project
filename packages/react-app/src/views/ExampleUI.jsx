@@ -306,6 +306,32 @@ export default function ExampleUI({
 
   const onChange = event => setValue(event.target.value);
 
+  const animationSteps = i => {
+    console.log(chunks);
+    let output = ["", ""];
+    console.log(chunks[1]);
+    console.log(i);
+    for (let j = 0; j < chunks[1][i]; j++) {
+      output[0] = `${output[0]}${40 + 8.4 * j};${40 + 8.4 * j};`;
+      output[1] =
+        j == chunks[1][i] - 1
+          ? `${output[1]}${(1 / chunks[1][i]) * j};1;`
+          : `${output[1]}${(1 / chunks[1][i]) * j};${(1 / chunks[1][i]) * (j + 1) - 1 / (chunks[1][i] * 10)};`;
+    }
+    console.log(output);
+    return output;
+  };
+
+  const beginTime = i => {
+    let sum = 0;
+    for (let j = 0; j < i; j++) {
+      sum += chunks[1][j];
+    }
+    return sum;
+  };
+
+  const duration = "0.1";
+
   return (
     <div>
       {/*
@@ -354,40 +380,62 @@ export default function ExampleUI({
             <rect x="40" y={20 + 22 * i} width="300" height="15" fill="#0E1013">
               <animate
                 attributeName="x"
-                values="0;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4"
+                values="0;8.4;8.4"
+                keyTimes="0; 0.1; 1"
                 dur="0.1s"
                 repeatCount="35"
                 additive="sum"
                 accumulate="sum"
                 fill="freeze"
-                begin={`${i * 0.1 * 35}s`}
+                begin={`${0.1 * beginTime(i)}s`}
               />
             </rect>
           ))}
-          {chunks[0].map((chunk, i) => (
-            <rect x="-20" y={20 + 22 * i} width="10" height="15" fill="#E39300">
-              <animate
-                attributeName="x"
-                values={() => {
-                  let output = "0";
-                  for (let i = 0; i < chunks[1][i]; i++) {
-                    output = `${output};8.4`;
-                  }
-                  console.log(output);
-                  return output.toString();
-                }}
-                // values={
-                //   "40;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4"
-                // }
-                dur="0.1s"
-                repeatCount="35"
-                additive="sum"
-                accumulate="sum"
-                // fill="freeze"
-                begin={`${i * 0.1 * 35}s`}
-              />
-            </rect>
-          ))}
+          {chunks[0].map((chunk, i) => {
+            console.log(animationSteps(i));
+            if (i == chunks[0].length - 1) {
+              return (
+                <rect x="-20" y={20 + 22 * i} width="10" height="15" fill="#E39300">
+                  <animate
+                    attributeName="x"
+                    values={animationSteps(i)[0]}
+                    keyTimes={animationSteps(i)[1]}
+                    dur={`${0.1 * chunks[1][i]}s`}
+                    fill="freeze"
+                    begin={`${0.1 * beginTime(i)}s`}
+                  />
+                  <animate
+                    attributeName="fill"
+                    // values="40;48.4;48.4"
+                    // keyTimes="0; 0.1; 1"
+                    // values="40;40;48.4;48.4;56.8;56.8;65.2;65.2;73.6;73.6;82;82;90.4;90.4;98.80000000000001;98.80000000000001;107.2;107.2"
+                    // keyTimes="0;0.09999999999999999;0.1111111111111111;0.2111111111111111;0.2222222222222222;0.3222222222222222;0.3333333333333333;0.4333333333333333;0.4444444444444444;0.5444444444444445;0.5555555555555556;0.6555555555555556;0.6666666666666666;0.7666666666666666;0.7777777777777777;0.8777777777777778;0.8888888888888888;1"
+                    values="#E39300;#E39300;#0E1013;#0E1013"
+                    keyTimes="0;0.5; 0.501; 1"
+                    dur="1s"
+                    begin={`${0.1 * beginTime(i + 1)}s`}
+                    repeatCount="indefinite"
+                  />
+                </rect>
+              );
+            } else {
+              return (
+                <rect x="-20" y={20 + 22 * i} width="10" height="15" fill="#E39300">
+                  <animate
+                    attributeName="x"
+                    // values="40;48.4;48.4"
+                    // keyTimes="0; 0.1; 1"
+                    // values="40;40;48.4;48.4;56.8;56.8;65.2;65.2;73.6;73.6;82;82;90.4;90.4;98.80000000000001;98.80000000000001;107.2;107.2"
+                    // keyTimes="0;0.09999999999999999;0.1111111111111111;0.2111111111111111;0.2222222222222222;0.3222222222222222;0.3333333333333333;0.4333333333333333;0.4444444444444444;0.5444444444444445;0.5555555555555556;0.6555555555555556;0.6666666666666666;0.7666666666666666;0.7777777777777777;0.8777777777777778;0.8888888888888888;1"
+                    values={animationSteps(i)[0]}
+                    keyTimes={animationSteps(i)[1]}
+                    dur={`${0.1 * chunks[1][i]}s`}
+                    begin={`${0.1 * beginTime(i)}s`}
+                  />
+                </rect>
+              );
+            }
+          })}
         </svg>
 
         <Card style={{ marginTop: 32 }}>
