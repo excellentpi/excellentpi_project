@@ -281,10 +281,16 @@ contract YourContract is ERC721Enumerable, Ownable {
     return colouredWords;
   }
 
-  function chunker(svgWord[] memory _words) private view returns (string[] memory) {
+  struct ChunkedLine {
+    string[] chunks;
+    uint[] lengths;
+  }
+
+  function chunker(svgWord[] memory _words) private view returns (ChunkedLine memory) {
     uint _maxWordsPerLine = 100;
     uint _maxlines = 10;
     string[][] memory _chunks = new string[][](_maxlines);
+    uint[] memory lengths = new uint[](_maxlines);
     // thing.push(true);
     // const _words = _wordsMap[0];
     // const lengths = _wordsMap[1];
@@ -302,6 +308,7 @@ contract YourContract is ERC721Enumerable, Ownable {
           string[] memory svg = new string[](_maxWordsPerLine);
           svg[0] = _words[i].svg;
           _chunks[_chunk] = svg;
+          lengths[_chunk] = bytes(_words[i].word).length;
           _wordsInChunk += 1;
         }
       } else {
@@ -310,25 +317,67 @@ contract YourContract is ERC721Enumerable, Ownable {
           _chunks[_chunk][_wordsInChunk] = _words[i].svg;
           // console.log(_words[i].svg);
           // console.log(_chunks[_chunk][_wordsInChunk]);
+          lengths[_chunk] += bytes(_words[i].word).length;
           _wordsInChunk += 1;
         } else if (keccak256(bytes(_words[i].word)) != keccak256(bytes(" "))) {
           string[] memory svg = new string[](_maxWordsPerLine);
           svg[0] = _words[i].svg;
           _chunks[_chunk] = svg;
+          lengths[_chunk] = bytes(_words[i].word).length;
           _wordsInChunk += 1;
         }
       }
       _sum += bytes(_words[i].word).length;
     }
-    string[] memory _output = new string[](_chunks.length);
+    ChunkedLine memory _output;
+    _output.chunks = new string[](_chunks.length);
+    _output.lengths = new uint[](_chunks.length);
     for (uint256 i; i < _chunks.length; i++) {
       if (_chunks[i].length > 0) {
         for (uint256 j; j < _chunks[i].length; j++) {
-          _output[i] = string(abi.encodePacked(_output[i], _chunks[i][j]));
+          _output.chunks[i] = string(abi.encodePacked(_output.chunks[i], _chunks[i][j]));
         }
+        _output.lengths[i] = lengths[i];
       }
     }
     return _output;
+  }
+
+  function animationSteps(uint i, uint[] memory chunkLengths) private pure returns (string[] memory){
+    string[] memory output = new string[](2);
+    for (uint j; j < chunkLengths[i]; j++) {
+      output[0] = string(abi.encodePacked(output[0], 40 + (42 * j) / 5, ";", 40 + (42 * j) / 5, ";"));
+      string memory keyTimes;
+      if (j == chunkLengths[i] - 1) {
+        keyTimes = string(abi.encodePacked(output[1],(1 / chunkLengths[i]) * j, ";1;"));
+      } else {
+        keyTimes = string(abi.encodePacked(output[1], 1 / chunkLengths[i] * j, ";", (1 / chunkLengths[i]) * (j + 1) - 1 / (chunkLengths[i] * 10), ";"));
+      }
+      output[1] = keyTimes;
+    }
+    return output;
+  }
+
+  function beginTime(uint i, uint[] memory chunkLengths) private pure returns (uint) {
+    uint sum = 0;
+    for (uint j = 0; j < i; j++) {
+      sum += chunkLengths[j];
+    }
+    return sum;
+  }
+
+  function animationGenerator(string[] memory chunks, uint[] memory lengths) private pure returns (string memory) {
+    string memory cursorBlinky;
+    string memory typingAnimation;
+    for (uint256 i; i < chunks.length; i++) {
+      typingAnimation = string(abi.encodePacked(typingAnimation, '<rect x="40" y="', Strings.toString(20 + 22 * i), '" width="300" height="15" fill="#0E1013"><animate attributeName="x" values="0;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4" dur="0.1s" repeatCount="35" additive="sum" accumulate="sum" fill="freeze" begin="', Strings.toString(beginTime(i/ 10, lengths)),'s"/></rect>'));
+      if (i == chunks.length - 1) {
+        cursorBlinky = string(abi.encodePacked(cursorBlinky, '<rect x="-20" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#E39300"><animate attributeName="x" values="', animationSteps(i, lengths)[0], '" keyTimes="', animationSteps(i, lengths)[1], '" dur="', Strings.toString(lengths[i]/10), '" fill="freeze" begin="', Strings.toString(beginTime(i/ 10, lengths)),'s"/><animate attributeName="fill" values="#E39300;#E39300;#0E1013;#0E1013" keyTimes="0;0.5; 0.501; 1" dur="1s" begin="', Strings.toString(beginTime((i + 1)/ 10, lengths)), 's" repeatCount="indefinite"/></rect>'));
+      } else {
+        cursorBlinky = string(abi.encodePacked(cursorBlinky, '<rect x="-20" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#E39300"><animate attributeName="x" values="', animationSteps(i, lengths)[0], '" keyTimes="', animationSteps(i, lengths)[1], '" dur="', Strings.toString(lengths[i]/10), '" begin="', Strings.toString(beginTime(i/ 10, lengths)),'s"/></rect>'));
+      }
+    }
+    return string(abi.encodePacked(typingAnimation, cursorBlinky));
   }
 
   function svgGenerator(uint256 tokenId) private view returns (string memory){
@@ -337,24 +386,26 @@ contract YourContract is ERC721Enumerable, Ownable {
     string memory _lineNumber = Strings.toString(tokenId);
     string memory _LineNumEnd = string('</tspan><tspan x="30" y="10">');
     string memory _svgtext = "";
-    string[] memory _chunks = chunker(colourifier(wordifier(contractString.text(tokenId-1))));
+    ChunkedLine memory chunkedLines = chunker(colourifier(wordifier(contractString.text(tokenId-1))));
+    string[] memory _chunks = chunkedLines.chunks;
+    uint[] memory _lengths = chunkedLines.lengths;
     for (uint256 i; i < _chunks.length; i++) {
       _svgtext = string(abi.encodePacked(_svgtext, '<tspan x="35" dx="10" dy="22">', _chunks[i], '</tspan>'));
     }
     string memory _textEnd = string('</tspan></text>');
 
-    string memory _animation = "";
-    for (uint256 i; i < _chunks.length; i++) {
-      _animation = string(abi.encodePacked(_animation, '<rect x="45" y="', Strings.toString(20 + 22 * i), '" width="300" height="15" fill="#0E1013"><animate attributeName="x" values="0;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4" dur="0.1s" repeatCount="35" additive="sum" accumulate="sum" fill="freeze" begin="',Strings.toString((i * 35)/ 10),'s"/></rect>'));
-    }
-    string memory _cursor = "";
-    for (uint256 i; i < _chunks.length; i++) {
-      _cursor = string(abi.encodePacked(_cursor, '<rect x="45" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#E39300"><animate attributeName="x" values="0;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4" dur="0.1s" repeatCount="35" additive="sum" accumulate="sum" fill="freeze" begin="',Strings.toString((i * 35)/ 10),'s"/></rect>'));
-    }
+    string memory _animation = animationGenerator(_chunks, _lengths);
+    // for (uint256 i; i < _chunks.length; i++) {
+    //   _animation = string(abi.encodePacked(_animation, '<rect x="45" y="', Strings.toString(20 + 22 * i), '" width="300" height="15" fill="#0E1013"><animate attributeName="x" values="0;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4" dur="0.1s" repeatCount="35" additive="sum" accumulate="sum" fill="freeze" begin="',Strings.toString((i * 35)/ 10),'s"/></rect>'));
+    // }
+    // string memory _cursor = "";
+    // for (uint256 i; i < _chunks.length; i++) {
+    //   _cursor = string(abi.encodePacked(_cursor, '<rect x="45" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#E39300"><animate attributeName="x" values="0;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4" dur="0.1s" repeatCount="35" additive="sum" accumulate="sum" fill="freeze" begin="',Strings.toString((i * 35)/ 10),'s"/></rect>'));
+    // }
 
     string memory _svgEnd = string('</svg>');
 
-    return string(abi.encodePacked(_svgStart, _lineNumber, _LineNumEnd, _svgtext, _textEnd, _animation, _cursor, _svgEnd));
+    return string(abi.encodePacked(_svgStart, _lineNumber, _LineNumEnd, _svgtext, _textEnd, _animation, _svgEnd));
   }
 
   function tokenURI(uint256 tokenId) override public view returns (string memory) {
