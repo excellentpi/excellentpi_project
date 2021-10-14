@@ -259,16 +259,22 @@ contract YourContract is ERC721Enumerable, Ownable {
       }
       _sum += bytes(_words[i].word).length;
     }
-    ChunkedLine memory _output;
-    _output.chunks = new string[](_chunks.length);
-    _output.lengths = new uint[](_chunks.length);
+
+    uint actualLength = 0;
     for (uint256 i; i < _chunks.length; i++) {
       if (_chunks[i].length > 0) {
-        for (uint256 j; j < _chunks[i].length; j++) {
-          _output.chunks[i] = string(abi.encodePacked(_output.chunks[i], _chunks[i][j]));
-        }
-        _output.lengths[i] = lengths[i];
+        actualLength += 1;
       }
+    }
+
+    ChunkedLine memory _output;
+    _output.chunks = new string[](actualLength);
+    _output.lengths = new uint[](actualLength);
+    for (uint256 i; i < actualLength; i++) {
+      for (uint256 j; j < _chunks[i].length; j++) {
+        _output.chunks[i] = string(abi.encodePacked(_output.chunks[i], _chunks[i][j]));
+      }
+      _output.lengths[i] = lengths[i];
     }
     return _output;
   }
@@ -297,16 +303,12 @@ contract YourContract is ERC721Enumerable, Ownable {
       // console.log("!!", (j+1) * chunkLengths[i] * 10 - chunkLengths[i] , chunkLengths[i] * chunkLengths[i] * 10, (chunkLengths[i] * chunkLengths[i] * 10) % ((j+1) * chunkLengths[i] * 10 - chunkLengths[i]) );
       string memory time2 = string(abi.encodePacked(divisionToString((j+1) * chunkLengths[i] * 10 - chunkLengths[i], chunkLengths[i] * chunkLengths[i] * 10)));
 
-
-
-        // ((j + 1) / chunkLengths[i]))      -     1 / (chunkLengths[i] * 10)
       if (j == chunkLengths[i] - 1) {
         keyTimes = string(abi.encodePacked(output[1], time1, ";1;"));
       } else {
         keyTimes = string(abi.encodePacked(output[1], time1, ";", time2, ";"));
       }
       output[1] = keyTimes;
-      // console.log("times", output[1]);
     }
     return output;
   }
@@ -325,9 +327,9 @@ contract YourContract is ERC721Enumerable, Ownable {
     for (uint256 i; i < chunks.length; i++) {
       typingAnimation = string(abi.encodePacked(typingAnimation, '<rect x="40" y="', Strings.toString(20 + 22 * i), '" width="300" height="15" fill="#0E1013"><animate attributeName="x" values="0;8.4;8.4" keyTimes="0; 0.9; 1" dur="0.1s" repeatCount="35" additive="sum" accumulate="sum" fill="freeze" begin="', beginTime(i, lengths),'"/></rect>'));
       if (i == chunks.length - 1) {
-        cursorBlinky = string(abi.encodePacked(cursorBlinky, '<rect x="-20" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#E39300"><animate attributeName="x" values="', animationSteps(i, lengths)[0], '" keyTimes="', animationSteps(i, lengths)[1], '" dur="', Strings.toString(lengths[i]/10), '" fill="freeze" begin="', beginTime(i, lengths),'"/><animate attributeName="fill" values="#E39300;#E39300;#0E1013;#0E1013" keyTimes="0;0.5; 0.501; 1" dur="1s" begin="', beginTime(i + 1, lengths), '" repeatCount="indefinite"/></rect>'));
+        cursorBlinky = string(abi.encodePacked(cursorBlinky, '<rect x="-20" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#E39300"><animate attributeName="x" values="', animationSteps(i, lengths)[0], '" keyTimes="', animationSteps(i, lengths)[1], '" dur="', divisionToString(lengths[i], 10), '" fill="freeze" begin="', beginTime(i, lengths),'"/><animate attributeName="fill" values="#E39300;#E39300;#0E1013;#0E1013" keyTimes="0;0.5; 0.501; 1" dur="1s" begin="', beginTime(i + 1, lengths), '" repeatCount="indefinite"/></rect>'));
       } else {
-        cursorBlinky = string(abi.encodePacked(cursorBlinky, '<rect x="-20" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#E39300"><animate attributeName="x" values="', animationSteps(i, lengths)[0], '" keyTimes="', animationSteps(i, lengths)[1], '" dur="', Strings.toString(lengths[i]/10), '" begin="', beginTime(i, lengths),'"/></rect>'));
+        cursorBlinky = string(abi.encodePacked(cursorBlinky, '<rect x="-20" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#E39300"><animate attributeName="x" values="', animationSteps(i, lengths)[0], '" keyTimes="', animationSteps(i, lengths)[1], '" dur="', divisionToString(lengths[i], 10), '" begin="', beginTime(i, lengths),'"/></rect>'));
       }
     }
     return string(abi.encodePacked(typingAnimation, cursorBlinky));
@@ -354,10 +356,7 @@ contract YourContract is ERC721Enumerable, Ownable {
   }
 
   function tokenURI(uint256 tokenId) override public view returns (string memory) {
-        
         string memory svg = svgGenerator(tokenId);
-
-
         string memory _json = Base64.encode(
           bytes(
             string(
