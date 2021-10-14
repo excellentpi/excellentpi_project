@@ -46,69 +46,6 @@ contract YourContract is ERC721Enumerable, Ownable {
       return string(a);    
   }
 
-  function bytesToString(bytes1 byteCode) public pure returns(string memory stringData) {
-    uint256 blank = 0; //blank 32 byte value
-    uint256 length = byteCode.length;
-
-    uint cycles = byteCode.length / 0x20;
-    uint requiredAlloc = length;
-
-    if (length % 0x20 > 0) //optimise copying the final part of the bytes - to avoid looping with single byte writes
-    {
-        cycles++;
-        requiredAlloc += 0x20; //expand memory to allow end blank, so we don't smack the next stack entry
-    }
-
-    stringData = new string(requiredAlloc);
-
-    //copy data in 32 byte blocks
-    assembly {
-        let cycle := 0
-
-        for
-        {
-            let mc := add(stringData, 0x20) //pointer into bytes we're writing to
-            let cc := add(byteCode, 0x20)   //pointer to where we're reading from
-        } lt(cycle, cycles) {
-            mc := add(mc, 0x20)
-            cc := add(cc, 0x20)
-            cycle := add(cycle, 0x01)
-        } {
-            mstore(mc, mload(cc))
-        }
-    }
-
-    //finally blank final bytes and shrink size (part of the optimisation to avoid looping adding blank bytes1)
-    if (length % 0x20 > 0)
-    {
-        uint offsetStart = 0x20 + length;
-        assembly
-        {
-            let mc := add(stringData, offsetStart)
-            mstore(mc, mload(add(blank, 0x20)))
-            //now shrink the memory back so the returned object is the correct size
-            mstore(stringData, length)
-        }
-    }
-  }
-
-  // function lineifier(uint tokenId) private view returns (string memory) {
-  //   string[] memory lines = new string[](528);
-  //   uint lastIndex = 0;
-  //   uint lineCount = 0;
-  //   for (uint i; i < bytes(contractString.text()).length; i++) {
-  //     if (bytes(contractString.text())[i] == "$") {
-  //       lineCount += 1;
-  //       if (lineCount == tokenId) {
-  //         console.log("line: %s", getSlice(lastIndex, i, contractString.text()));
-  //         return getSlice(lastIndex, i, contractString.text());
-  //       }
-  //       lastIndex = i + 1;
-  //     }
-  //   }
-  //   return lines[tokenId];
-  // }
-
   function wordifier(string memory _text) private view returns (string[] memory) {
     string[] memory _tempWords = new string[](150);
     uint lastIndex = 0;
@@ -143,7 +80,6 @@ contract YourContract is ERC721Enumerable, Ownable {
         }
         removeWhiteSpace = false;
         _tempWords[wordCount] = getSlice(lastIndex, i, _text);
-        console.log("word: %s", _tempWords[wordCount]);
         bytes memory a = new bytes(1);
         if (bytes(_text)[i] == ">") {
           _tempWords[wordCount + 1] = "&gt;";
@@ -155,7 +91,6 @@ contract YourContract is ERC721Enumerable, Ownable {
           a[0] = bytes(_text)[i];
           _tempWords[wordCount + 1] = string(a);
         }
-        console.log("word: %s", _tempWords[wordCount+1]);
         wordCount += 2;
         lastIndex = i + 1;
       }
@@ -165,7 +100,6 @@ contract YourContract is ERC721Enumerable, Ownable {
     }
     if (lastIndex < bytes(_text).length - 1) {
       _tempWords[wordCount] = getSlice(lastIndex, bytes(_text).length-1, _text);
-      console.log("word: %s", _tempWords[wordCount]);
       wordCount += 1;
     }
     string[] memory _words = new string[](wordCount);
@@ -299,7 +233,6 @@ contract YourContract is ERC721Enumerable, Ownable {
     uint _chunk = 0;
     uint _wordsInChunk = 0;
     for (uint i = 0; i < _words.length; i++) {
-      // console.log(_words[i].svg);
       if (_sum + bytes(_words[i].word).length >= _max_length) {
         _sum = 0;
         _wordsInChunk = 0;
@@ -313,10 +246,7 @@ contract YourContract is ERC721Enumerable, Ownable {
         }
       } else {
         if (_chunks[_chunk].length > 0) {
-          // console.log(_wordsInChunk);
           _chunks[_chunk][_wordsInChunk] = _words[i].svg;
-          // console.log(_words[i].svg);
-          // console.log(_chunks[_chunk][_wordsInChunk]);
           lengths[_chunk] += bytes(_words[i].word).length;
           _wordsInChunk += 1;
         } else if (keccak256(bytes(_words[i].word)) != keccak256(bytes(" "))) {
@@ -343,38 +273,61 @@ contract YourContract is ERC721Enumerable, Ownable {
     return _output;
   }
 
-  function animationSteps(uint i, uint[] memory chunkLengths) private pure returns (string[] memory){
+  function divisionToString(uint numerator, uint denominator) private view returns (string memory) {
+    uint result = ((numerator * 10**4) / (denominator)) % 10**4;
+    console.log(numerator, denominator, result);
+    if (result < 10) {
+      return string(abi.encodePacked(Strings.toString(numerator/ denominator), ".000", Strings.toString(result)));
+    } else if (result < 100) {
+      return string(abi.encodePacked(Strings.toString(numerator/ denominator), ".00", Strings.toString(result)));
+    } else if (result < 1000) {
+      return string(abi.encodePacked(Strings.toString(numerator/ denominator), ".0", Strings.toString(result)));
+    } else {
+      return string(abi.encodePacked(Strings.toString(numerator/ denominator), ".", Strings.toString(result)));
+    }
+  }
+
+  function animationSteps(uint i, uint[] memory chunkLengths) private view returns (string[] memory){
     string[] memory output = new string[](2);
     for (uint j; j < chunkLengths[i]; j++) {
-      output[0] = string(abi.encodePacked(output[0], 40 + (42 * j) / 5, ";", 40 + (42 * j) / 5, ";"));
+      string memory distance = string(abi.encodePacked(divisionToString((40 * 5) + (42 * j), 5)));
+      output[0] = string(abi.encodePacked(output[0], distance, ";", distance, ";"));
       string memory keyTimes;
+      string memory time1 = string(abi.encodePacked(divisionToString(j, chunkLengths[i])));
+      // console.log("!!", (j+1) * chunkLengths[i] * 10 - chunkLengths[i] , chunkLengths[i] * chunkLengths[i] * 10, (chunkLengths[i] * chunkLengths[i] * 10) % ((j+1) * chunkLengths[i] * 10 - chunkLengths[i]) );
+      string memory time2 = string(abi.encodePacked(divisionToString((j+1) * chunkLengths[i] * 10 - chunkLengths[i], chunkLengths[i] * chunkLengths[i] * 10)));
+
+
+
+        // ((j + 1) / chunkLengths[i]))      -     1 / (chunkLengths[i] * 10)
       if (j == chunkLengths[i] - 1) {
-        keyTimes = string(abi.encodePacked(output[1],(1 / chunkLengths[i]) * j, ";1;"));
+        keyTimes = string(abi.encodePacked(output[1], time1, ";1;"));
       } else {
-        keyTimes = string(abi.encodePacked(output[1], 1 / chunkLengths[i] * j, ";", (1 / chunkLengths[i]) * (j + 1) - 1 / (chunkLengths[i] * 10), ";"));
+        keyTimes = string(abi.encodePacked(output[1], time1, ";", time2, ";"));
       }
       output[1] = keyTimes;
+      // console.log("times", output[1]);
     }
     return output;
   }
 
-  function beginTime(uint i, uint[] memory chunkLengths) private pure returns (uint) {
+  function beginTime(uint i, uint[] memory chunkLengths) private view returns (string memory) {
     uint sum = 0;
     for (uint j = 0; j < i; j++) {
       sum += chunkLengths[j];
     }
-    return sum;
+    return string(abi.encodePacked(divisionToString(sum, 10), "s"));
   }
 
-  function animationGenerator(string[] memory chunks, uint[] memory lengths) private pure returns (string memory) {
+  function animationGenerator(string[] memory chunks, uint[] memory lengths) private view returns (string memory) {
     string memory cursorBlinky;
     string memory typingAnimation;
     for (uint256 i; i < chunks.length; i++) {
-      typingAnimation = string(abi.encodePacked(typingAnimation, '<rect x="40" y="', Strings.toString(20 + 22 * i), '" width="300" height="15" fill="#0E1013"><animate attributeName="x" values="0;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4" dur="0.1s" repeatCount="35" additive="sum" accumulate="sum" fill="freeze" begin="', Strings.toString(beginTime(i/ 10, lengths)),'s"/></rect>'));
+      typingAnimation = string(abi.encodePacked(typingAnimation, '<rect x="40" y="', Strings.toString(20 + 22 * i), '" width="300" height="15" fill="#0E1013"><animate attributeName="x" values="0;8.4;8.4" keyTimes="0; 0.9; 1" dur="0.1s" repeatCount="35" additive="sum" accumulate="sum" fill="freeze" begin="', beginTime(i, lengths),'"/></rect>'));
       if (i == chunks.length - 1) {
-        cursorBlinky = string(abi.encodePacked(cursorBlinky, '<rect x="-20" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#E39300"><animate attributeName="x" values="', animationSteps(i, lengths)[0], '" keyTimes="', animationSteps(i, lengths)[1], '" dur="', Strings.toString(lengths[i]/10), '" fill="freeze" begin="', Strings.toString(beginTime(i/ 10, lengths)),'s"/><animate attributeName="fill" values="#E39300;#E39300;#0E1013;#0E1013" keyTimes="0;0.5; 0.501; 1" dur="1s" begin="', Strings.toString(beginTime((i + 1)/ 10, lengths)), 's" repeatCount="indefinite"/></rect>'));
+        cursorBlinky = string(abi.encodePacked(cursorBlinky, '<rect x="-20" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#E39300"><animate attributeName="x" values="', animationSteps(i, lengths)[0], '" keyTimes="', animationSteps(i, lengths)[1], '" dur="', Strings.toString(lengths[i]/10), '" fill="freeze" begin="', beginTime(i, lengths),'"/><animate attributeName="fill" values="#E39300;#E39300;#0E1013;#0E1013" keyTimes="0;0.5; 0.501; 1" dur="1s" begin="', beginTime(i + 1, lengths), '" repeatCount="indefinite"/></rect>'));
       } else {
-        cursorBlinky = string(abi.encodePacked(cursorBlinky, '<rect x="-20" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#E39300"><animate attributeName="x" values="', animationSteps(i, lengths)[0], '" keyTimes="', animationSteps(i, lengths)[1], '" dur="', Strings.toString(lengths[i]/10), '" begin="', Strings.toString(beginTime(i/ 10, lengths)),'s"/></rect>'));
+        cursorBlinky = string(abi.encodePacked(cursorBlinky, '<rect x="-20" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#E39300"><animate attributeName="x" values="', animationSteps(i, lengths)[0], '" keyTimes="', animationSteps(i, lengths)[1], '" dur="', Strings.toString(lengths[i]/10), '" begin="', beginTime(i, lengths),'"/></rect>'));
       }
     }
     return string(abi.encodePacked(typingAnimation, cursorBlinky));
@@ -395,14 +348,6 @@ contract YourContract is ERC721Enumerable, Ownable {
     string memory _textEnd = string('</tspan></text>');
 
     string memory _animation = animationGenerator(_chunks, _lengths);
-    // for (uint256 i; i < _chunks.length; i++) {
-    //   _animation = string(abi.encodePacked(_animation, '<rect x="45" y="', Strings.toString(20 + 22 * i), '" width="300" height="15" fill="#0E1013"><animate attributeName="x" values="0;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4" dur="0.1s" repeatCount="35" additive="sum" accumulate="sum" fill="freeze" begin="',Strings.toString((i * 35)/ 10),'s"/></rect>'));
-    // }
-    // string memory _cursor = "";
-    // for (uint256 i; i < _chunks.length; i++) {
-    //   _cursor = string(abi.encodePacked(_cursor, '<rect x="45" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#E39300"><animate attributeName="x" values="0;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4;8.4" dur="0.1s" repeatCount="35" additive="sum" accumulate="sum" fill="freeze" begin="',Strings.toString((i * 35)/ 10),'s"/></rect>'));
-    // }
-
     string memory _svgEnd = string('</svg>');
 
     return string(abi.encodePacked(_svgStart, _lineNumber, _LineNumEnd, _svgtext, _textEnd, _animation, _svgEnd));
