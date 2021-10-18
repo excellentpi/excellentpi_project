@@ -19,7 +19,7 @@ contract YourContract is ERC721Enumerable, Ownable {
   IContractString contractString;
 
   string[51] _blue = ["solidity","encodePacked","encode","ownerOf","toString","supportsInterface","balanceOf","name","symbol","_exists","_baseURI","approve","_msgSender","_approve","Approve","getApproved","isApprovedForAll","setApprovalForAll","ApprovalForAll","Approval","transferFrom","_isApprovedOrOwner","safeTransferFrom","safeTransferFrom","_safeTransfer","_transfer","_checkOnERC721Received","IERC721Receiver","onERC721Received","_safeMint","_mint","_beforeTokenTransfer","Transfer","_burn","_transfer","isContract","add","mload","tokenURI","extcodesize","sendValue","functionCall","functionCallWithValue","call","_verifyCallResult","functionStaticCall","staticcall","functionDelegateCall","delegatecall","_msgData","toHexString"];
-  string[3] _green = ["function", "interface", '"'];
+  string[4] _green = ["function", "interface", '"', "'"];
   string[19] _italicPurple = ["view","public","private","pure","override","memory","abstract","virtual","external","internal","event","indexed","external","calldata","library","let","contract","constant","constructor"];
   string[19] _purple = ["Strings","Context","IERC165","IERC721","ERC165","ERC721","bytes","bytes1","bytes4","bytes16","uint","uint8","uint256","bool","string","address","IERC721Metadata","Address","mapping"];
   string[1] _italicYellow = ["is"];
@@ -36,7 +36,6 @@ contract YourContract is ERC721Enumerable, Ownable {
   constructor() ERC721("NonFungibleNFT", "NFNFT") Ownable() {
     contractString = IContractString(address(0xffa7CA1AEEEbBc30C874d32C7e22F052BbEa0429));
   }
-
 
   function getSlice(uint256 begin, uint256 end, string memory text) public view returns (string memory) {
       bytes memory a = new bytes(end-begin);
@@ -63,6 +62,7 @@ contract YourContract is ERC721Enumerable, Ownable {
         bytes(_text)[i] == "<" ||
         bytes(_text)[i] == ">" ||
         bytes(_text)[i] == '"' ||
+        bytes(_text)[i] == "'" ||
         bytes(_text)[i] == "+" ||
         bytes(_text)[i] == "-" ||
         bytes(_text)[i] == "*" ||
@@ -162,51 +162,55 @@ contract YourContract is ERC721Enumerable, Ownable {
   function colourifier(string[] memory _words) private view returns (svgWord[] memory) {
     string[][] memory keywords = getKeywords();
     svgWord[] memory colouredWords = new svgWord[](_words.length);
-    svgWord memory painted;
+    string[] memory stringWord = new string[](50);
+    uint index = 0;
+    bool encounteredString = false;
     for(uint i; i < _words.length; i++) {
-      painted = painter(_words[i], string[](keywords[0]), 'class="blue"');
-      if (keccak256(bytes(painted.word)) != keccak256(bytes(""))) {
-        colouredWords[i] = painted;
+      if (keccak256(bytes(_words[i])) == keccak256(bytes("'")) || keccak256(bytes(_words[i])) == keccak256(bytes('"'))) {
+        encounteredString = !encounteredString;
+        if(!encounteredString) {
+            colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="green">', _words[i], '</tspan>')), _words[i]);
+            continue;
+        }
+      }
+      if(encounteredString) {
+          colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="green">', _words[i], '</tspan>')), _words[i]);
+          continue;
+      }
+      if (keccak256(bytes(_words[i])) != keccak256(bytes(""))) {
+        colouredWords[i] = painter(_words[i], string[](keywords[0]), 'class="blue"');
         continue;
       }
-      painted = painter(_words[i], string[](keywords[1]), 'class="green"');
-      if (keccak256(bytes(painted.word)) != keccak256(bytes(""))) {
-        colouredWords[i] = painted;
+      if (keccak256(bytes(_words[i])) != keccak256(bytes(""))) {
+        colouredWords[i] = painter(_words[i], string[](keywords[1]), 'class="green"');
         continue;
       }
-      painted = painter(_words[i], string[](keywords[2]), 'class="purple" font-style="italic"');
-      if (keccak256(bytes(painted.word)) != keccak256(bytes(""))) {
-        colouredWords[i] = painted;
+      if (keccak256(bytes(_words[i])) != keccak256(bytes(""))) {
+        colouredWords[i] = painter(_words[i], string[](keywords[2]), 'class="purple" font-style="italic"');
         continue;
       }
-      painted = painter(_words[i], string[](keywords[3]), 'class="purple"');
-      if (keccak256(bytes(painted.word)) != keccak256(bytes(""))) {
-        colouredWords[i] = painted;
+      if (keccak256(bytes(_words[i])) != keccak256(bytes(""))) {
+        colouredWords[i] = painter(_words[i], string[](keywords[3]), 'class="purple"');
         continue;
       }
-      painted = painter(_words[i], string[](keywords[4]), 'class="yellow" font-style="italic"');
-      if (keccak256(bytes(painted.word)) != keccak256(bytes(""))) {
-        colouredWords[i] = painted;
+      if (keccak256(bytes(_words[i])) != keccak256(bytes(""))) {
+        colouredWords[i] = painter(_words[i], string[](keywords[4]), 'class="yellow" font-style="italic"');
         continue;
       }
-      painted = painter(_words[i], string[](keywords[5]), 'class="yellow"');
-      if (keccak256(bytes(painted.word)) != keccak256(bytes(""))) {
-        colouredWords[i] = painted;
+      if (keccak256(bytes(_words[i])) != keccak256(bytes(""))) {
+        colouredWords[i] = painter(_words[i], string[](keywords[5]), 'class="yellow"');
         continue;
       }
-      painted = painter(_words[i], string[](keywords[6]), 'class="orange"');
-      if (keccak256(bytes(painted.word)) != keccak256(bytes(""))) {
-        colouredWords[i] = painted;
+      if (keccak256(bytes(_words[i])) != keccak256(bytes(""))) {
+        colouredWords[i] = painter(_words[i], string[](keywords[6]), 'class="orange"');
         continue;
       }
-      painted = painter(_words[i], string[](keywords[7]), 'class="red"');
-      if (keccak256(bytes(painted.word)) != keccak256(bytes(""))) {
-        colouredWords[i] = painted;
+      if (keccak256(bytes(_words[i])) != keccak256(bytes(""))) {
+        colouredWords[i] = painter(_words[i], string[](keywords[7]), 'class="red"');
         continue;
       }
-      painted = painter(_words[i], string[](keywords[8]), 'class="grey"');
-      if (keccak256(bytes(painted.word)) != keccak256(bytes(""))) {
-        colouredWords[i] = painted;
+      if (keccak256(bytes(_words[i])) != keccak256(bytes(""))) {
+        colouredWords[i] = painter(_words[i], string[](keywords[8]), 'class="grey"');
         continue;
       }
       colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="white">',_words[i], '</tspan>')), _words[i]);
@@ -327,7 +331,7 @@ contract YourContract is ERC721Enumerable, Ownable {
     for (uint256 i; i < chunks.length; i++) {
       typingAnimation = string(abi.encodePacked(typingAnimation, '<rect x="40" y="', Strings.toString(20 + 22 * i), '" width="300" height="15" fill="#0E1013"><animate attributeName="x" values="0;8.4;8.4" keyTimes="0; 0.9; 1" dur="0.1s" repeatCount="35" additive="sum" accumulate="sum" fill="freeze" begin="', beginTime(i, lengths),'"/></rect>'));
       if (i == chunks.length - 1) {
-        cursorBlinky = string(abi.encodePacked(cursorBlinky, '<rect x="-20" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#E39300"><animate attributeName="x" values="', animationSteps(i, lengths)[0], '" keyTimes="', animationSteps(i, lengths)[1], '" dur="', divisionToString(lengths[i], 10), '" fill="freeze" begin="', beginTime(i, lengths),'"/><animate attributeName="fill" values="#E39300;#E39300;#0E1013;#0E1013" keyTimes="0;0.5; 0.501; 1" dur="1s" begin="', beginTime(i + 1, lengths), '" repeatCount="indefinite"/></rect>'));
+        cursorBlinky = string(abi.encodePacked(cursorBlinky, '<rect x="-20" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#E39300"><animate attributeName="x" values="', animationSteps(i, lengths)[0], '" keyTimes="', animationSteps(i, lengths)[1], '" dur="', divisionToString(lengths[i], 10), '" fill="freeze" begin="', beginTime(i, lengths),'"/><animate attributeName="fill" values="#CE0F5E;#CE0F5E;#0D141F;#0D141F" keyTimes="0;0.5; 0.501; 1" dur="1s" begin="', beginTime(i + 1, lengths), '" repeatCount="indefinite"/></rect>'));
       } else {
         cursorBlinky = string(abi.encodePacked(cursorBlinky, '<rect x="-20" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#E39300"><animate attributeName="x" values="', animationSteps(i, lengths)[0], '" keyTimes="', animationSteps(i, lengths)[1], '" dur="', divisionToString(lengths[i], 10), '" begin="', beginTime(i, lengths),'"/></rect>'));
       }
@@ -336,8 +340,7 @@ contract YourContract is ERC721Enumerable, Ownable {
   }
 
   function svgGenerator(uint256 tokenId) private view returns (string memory){
-    string memory _text = "_svgMiddle = string(abi.encodePacked(_svgMiddle, '<tspan x='30' dx='10' dy='22'>', _chunks[i], '</tspan>'));"; 
-    string memory _svgStart = string('<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base {fill: #0D141F; font-family: monospace; font-size: 14px;} .blue {fill: #149CA5;} .green {fill: #CE0F5E;} .purple {fill: #C98933;} .yellow {fill: #CE0F5E;} .orange {fill: #3574B1;} .red {fill: #B6412A;} .grey {fill: #3D4D5A;} .white {fill: #A1C2CB;} .muted {fill: #27527C;} .bright {fill: #0087A3;} .italic {font-style: italic;}</style><rect width="100%" height="100%" fill="#0E1013" /><line x1="35" y1="15" x2="35" y2="335" stroke="#282B30" /><text x="10" y="20" class="base"><tspan x="5" y="10" dy="22" class="muted">');
+    string memory _svgStart = string('<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base {fill: #0D141F; font-family: monospace; font-size: 14px;} .blue {fill: #149CA5;} .green {fill: #82D052;} .purple {fill: #C98933;} .yellow {fill: #CE0F5E;} .orange {fill: #3574B1;} .red {fill: #B6412A;} .grey {fill: #3D4D5A;} .white {fill: #A1C2CB;} .muted {fill: #1B3450;} .bright {fill: #0087A3;} .italic {font-style: italic;}</style><rect width="100%" height="100%" class="base" /><line x1="35" y1="15" x2="35" y2="335" stroke="#27527C" /><text x="10" y="20" class="base"><tspan x="5" y="10" dy="22" class="muted">');
     string memory _lineNumber = Strings.toString(tokenId);
     string memory _LineNumEnd = string('</tspan><tspan x="30" y="10">');
     string memory _svgtext = "";
@@ -348,7 +351,6 @@ contract YourContract is ERC721Enumerable, Ownable {
       _svgtext = string(abi.encodePacked(_svgtext, '<tspan x="35" dx="10" dy="22">', _chunks[i], '</tspan>'));
     }
     string memory _textEnd = string('</tspan></text>');
-
     string memory _animation = animationGenerator(_chunks, _lengths);
     string memory _svgEnd = string('</svg>');
 
@@ -356,34 +358,21 @@ contract YourContract is ERC721Enumerable, Ownable {
   }
 
   function tokenURI(uint256 tokenId) override public view returns (string memory) {
-        string memory svg = svgGenerator(tokenId);
-        string memory _json = Base64.encode(
-          bytes(
-            string(
-              abi.encodePacked(
-                '{"image": "data:image/svg+xml;base64,', Base64.encode(bytes(svg)), '"}'
-              )
+      string memory svg = svgGenerator(tokenId);
+      string memory _json = Base64.encode(
+        bytes(
+          string(
+            abi.encodePacked(
+              '{"image": "data:image/svg+xml;base64,', Base64.encode(bytes(svg)), '"}'
             )
           )
-        );
-        
-        console.log(svg);
+        )
+      );
+      console.log(svg);
 
-        string memory _output = string(
-          abi.encodePacked('data:application/json;base64,', _json)
-        );
-
-        return _output;
-    }
-
-  function mint(uint _count) public { // Does this need Nonreentrant??
-      uint totalSupply = totalSupply();
-      require(_count < _maxPerTx, "Exceeds max mint count per transaction");
-      require(totalSupply < MAX_TOKENS, "Sold out");
-      require(totalSupply + _count < MAX_TOKENS, "This amount will exceed max supply");
-
-      for (uint i; i < _count; i++) {
-        _safeMint(msg.sender, totalSupply + i);
-      }
+      string memory _output = string(
+        abi.encodePacked('data:application/json;base64,', _json)
+      );
+      return _output;
   }
 }
