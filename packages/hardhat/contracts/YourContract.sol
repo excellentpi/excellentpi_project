@@ -161,6 +161,7 @@ contract YourContract is ERC721Enumerable, Ownable {
 
   function colourifier(string[] memory _words) private view returns (svgWord[] memory) {
     string[][] memory keywords = getKeywords();
+    svgWord memory painted;
     svgWord[] memory colouredWords = new svgWord[](_words.length);
     string[] memory stringWord = new string[](50);
     uint index = 0;
@@ -177,40 +178,49 @@ contract YourContract is ERC721Enumerable, Ownable {
           colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="green">', _words[i], '</tspan>')), _words[i]);
           continue;
       }
-      if (keccak256(bytes(_words[i])) != keccak256(bytes(""))) {
-        colouredWords[i] = painter(_words[i], string[](keywords[0]), 'class="blue"');
+      painted = painter(_words[i], string[](keywords[0]), 'class="blue"');
+      if (keccak256(bytes(painted.word)) != keccak256(bytes(""))) {
+        colouredWords[i] = painted;
         continue;
       }
-      if (keccak256(bytes(_words[i])) != keccak256(bytes(""))) {
-        colouredWords[i] = painter(_words[i], string[](keywords[1]), 'class="green"');
+      painted = painter(_words[i], string[](keywords[1]), 'class="green"');
+      if (keccak256(bytes(painted.word)) != keccak256(bytes(""))) {
+        colouredWords[i] = painted;
         continue;
       }
-      if (keccak256(bytes(_words[i])) != keccak256(bytes(""))) {
-        colouredWords[i] = painter(_words[i], string[](keywords[2]), 'class="purple" font-style="italic"');
+      painted = painter(_words[i], string[](keywords[2]), 'class="purple" font-style="italic"');
+      if (keccak256(bytes(painted.word)) != keccak256(bytes(""))) {
+        colouredWords[i] = painted;
         continue;
       }
-      if (keccak256(bytes(_words[i])) != keccak256(bytes(""))) {
-        colouredWords[i] = painter(_words[i], string[](keywords[3]), 'class="purple"');
+      painted = painter(_words[i], string[](keywords[3]), 'class="purple"');
+      if (keccak256(bytes(painted.word)) != keccak256(bytes(""))) {
+        colouredWords[i] = painted;
         continue;
       }
-      if (keccak256(bytes(_words[i])) != keccak256(bytes(""))) {
-        colouredWords[i] = painter(_words[i], string[](keywords[4]), 'class="yellow" font-style="italic"');
+      painted = painter(_words[i], string[](keywords[4]), 'class="yellow" font-style="italic"');
+      if (keccak256(bytes(painted.word)) != keccak256(bytes(""))) {
+        colouredWords[i] = painted;
         continue;
       }
-      if (keccak256(bytes(_words[i])) != keccak256(bytes(""))) {
-        colouredWords[i] = painter(_words[i], string[](keywords[5]), 'class="yellow"');
+      painted = painter(_words[i], string[](keywords[5]), 'class="yellow"');
+      if (keccak256(bytes(painted.word)) != keccak256(bytes(""))) {
+        colouredWords[i] = painted;
         continue;
       }
-      if (keccak256(bytes(_words[i])) != keccak256(bytes(""))) {
-        colouredWords[i] = painter(_words[i], string[](keywords[6]), 'class="orange"');
+      painted = painter(_words[i], string[](keywords[6]), 'class="orange"');
+      if (keccak256(bytes(painted.word)) != keccak256(bytes(""))) {
+        colouredWords[i] = painted;
         continue;
       }
-      if (keccak256(bytes(_words[i])) != keccak256(bytes(""))) {
-        colouredWords[i] = painter(_words[i], string[](keywords[7]), 'class="red"');
+      painted = painter(_words[i], string[](keywords[7]), 'class="red"');
+      if (keccak256(bytes(painted.word)) != keccak256(bytes(""))) {
+        colouredWords[i] = painted;
         continue;
       }
-      if (keccak256(bytes(_words[i])) != keccak256(bytes(""))) {
-        colouredWords[i] = painter(_words[i], string[](keywords[8]), 'class="grey"');
+      painted = painter(_words[i], string[](keywords[8]), 'class="grey"');
+      if (keccak256(bytes(painted.word)) != keccak256(bytes(""))) {
+        colouredWords[i] = painted;
         continue;
       }
       colouredWords[i] = svgWord(string(abi.encodePacked('<tspan class="white">',_words[i], '</tspan>')), _words[i]);
@@ -299,15 +309,14 @@ contract YourContract is ERC721Enumerable, Ownable {
 
   function animationSteps(uint i, uint[] memory chunkLengths) private view returns (string[] memory){
     string[] memory output = new string[](2);
-    for (uint j; j < chunkLengths[i]; j++) {
-      string memory distance = string(abi.encodePacked(divisionToString((40 * 5) + (42 * j), 5)));
-      output[0] = string(abi.encodePacked(output[0], distance, ";", distance, ";"));
+    for (uint j; j < (chunkLengths[i]+2); j++) {
+      string memory values = string(abi.encodePacked(divisionToString((40 * 5) + (42 * j), 5)));
+      output[0] = string(abi.encodePacked(output[0], values, ";", values, ";"));
       string memory keyTimes;
-      string memory time1 = string(abi.encodePacked(divisionToString(j, chunkLengths[i])));
-      // console.log("!!", (j+1) * chunkLengths[i] * 10 - chunkLengths[i] , chunkLengths[i] * chunkLengths[i] * 10, (chunkLengths[i] * chunkLengths[i] * 10) % ((j+1) * chunkLengths[i] * 10 - chunkLengths[i]) );
-      string memory time2 = string(abi.encodePacked(divisionToString((j+1) * chunkLengths[i] * 10 - chunkLengths[i], chunkLengths[i] * chunkLengths[i] * 10)));
+      string memory time1 = string(abi.encodePacked(divisionToString(j, (chunkLengths[i]+2))));
+      string memory time2 = string(abi.encodePacked(divisionToString((j+1) * (chunkLengths[i]+2) * 10 - (chunkLengths[i]+2), (chunkLengths[i]+2) * (chunkLengths[i]+2) * 10)));
 
-      if (j == chunkLengths[i] - 1) {
+      if (j == (chunkLengths[i]+2) - 1) {
         keyTimes = string(abi.encodePacked(output[1], time1, ";1;"));
       } else {
         keyTimes = string(abi.encodePacked(output[1], time1, ";", time2, ";"));
@@ -320,7 +329,7 @@ contract YourContract is ERC721Enumerable, Ownable {
   function beginTime(uint i, uint[] memory chunkLengths) private view returns (string memory) {
     uint sum = 0;
     for (uint j = 0; j < i; j++) {
-      sum += chunkLengths[j];
+      sum += chunkLengths[j] + 2;
     }
     return string(abi.encodePacked(divisionToString(sum, 10), "s"));
   }
@@ -329,11 +338,11 @@ contract YourContract is ERC721Enumerable, Ownable {
     string memory cursorBlinky;
     string memory typingAnimation;
     for (uint256 i; i < chunks.length; i++) {
-      typingAnimation = string(abi.encodePacked(typingAnimation, '<rect x="40" y="', Strings.toString(20 + 22 * i), '" width="300" height="15" fill="#0E1013"><animate attributeName="x" values="0;8.4;8.4" keyTimes="0; 0.9; 1" dur="0.1s" repeatCount="35" additive="sum" accumulate="sum" fill="freeze" begin="', beginTime(i, lengths),'"/></rect>'));
+      typingAnimation = string(abi.encodePacked(typingAnimation, '<rect x="40" y="', Strings.toString(20 + 22 * i), '" width="300" height="17" fill="#0D141F"><animate attributeName="x" values="0;8.4;8.4" keyTimes="0; 0.9; 1" dur="0.1s" repeatCount="35" additive="sum" accumulate="sum" fill="freeze" begin="', beginTime(i, lengths),'"/></rect>'));
       if (i == chunks.length - 1) {
-        cursorBlinky = string(abi.encodePacked(cursorBlinky, '<rect x="-20" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#E39300"><animate attributeName="x" values="', animationSteps(i, lengths)[0], '" keyTimes="', animationSteps(i, lengths)[1], '" dur="', divisionToString(lengths[i], 10), '" fill="freeze" begin="', beginTime(i, lengths),'"/><animate attributeName="fill" values="#CE0F5E;#CE0F5E;#0D141F;#0D141F" keyTimes="0;0.5; 0.501; 1" dur="1s" begin="', beginTime(i + 1, lengths), '" repeatCount="indefinite"/></rect>'));
+        cursorBlinky = string(abi.encodePacked(cursorBlinky, '<rect x="-20" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#CE0F5E"><animate attributeName="x" values="', animationSteps(i, lengths)[0], '" keyTimes="', animationSteps(i, lengths)[1], '" dur="', divisionToString(lengths[i]+2, 10), '" fill="freeze" begin="', beginTime(i, lengths),'"/><animate attributeName="fill" values="#CE0F5E;#CE0F5E;#0D141F;#0D141F" keyTimes="0;0.5; 0.501; 1" dur="1s" begin="', beginTime(i + 1, lengths), '" repeatCount="indefinite"/></rect>'));
       } else {
-        cursorBlinky = string(abi.encodePacked(cursorBlinky, '<rect x="-20" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#E39300"><animate attributeName="x" values="', animationSteps(i, lengths)[0], '" keyTimes="', animationSteps(i, lengths)[1], '" dur="', divisionToString(lengths[i], 10), '" begin="', beginTime(i, lengths),'"/></rect>'));
+        cursorBlinky = string(abi.encodePacked(cursorBlinky, '<rect x="-20" y="', Strings.toString(20 + 22 * i), '" width="10" height="15" fill="#CE0F5E"><animate attributeName="x" values="', animationSteps(i, lengths)[0], '" keyTimes="', animationSteps(i, lengths)[1], '" dur="', divisionToString(lengths[i]+2, 10), '" begin="', beginTime(i, lengths),'"/></rect>'));
       }
     }
     return string(abi.encodePacked(typingAnimation, cursorBlinky));

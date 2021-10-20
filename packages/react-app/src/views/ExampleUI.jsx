@@ -16,8 +16,10 @@ export default function ExampleUI({
   readContracts,
   writeContracts,
 }) {
-  const [mintCount, setMintCount] = useState(1);
   const [tokenID, settokenID] = useState(1);
+  const [mintCount, setMintCount] = useState(1);
+  // const [walletAddress, setAddress] = useState("0x");
+  const [walletNFTs, setWalletNFTs] = useState([]);
 
   const [value, setValue] = useState("function tokenURI(uint256 tokenId) external view returns (string memory);");
   const [tokenURI, setTokenURI] = useState({});
@@ -329,6 +331,15 @@ export default function ExampleUI({
 
   const duration = "0.1";
 
+  function hex2a(hex) {
+    var str = "";
+    for (var i = 0; i < hex.length; i += 2) {
+      var v = parseInt(hex.substr(i, 2), 16);
+      if (v) str += String.fromCharCode(v);
+    }
+    return str;
+  }
+
   return (
     <div>
       {/*
@@ -471,7 +482,7 @@ export default function ExampleUI({
               onClick={async () => {
                 /* look how you call setPurpose on your contract: */
                 /* notice how you pass a call back for tx updates too */
-                const result = tx(writeContracts.YourContract.mint(mintCount), update => {
+                const result = tx(writeContracts.ItsCodeInHere.mint(mintCount), update => {
                   console.log("📡 Transaction Update:", update);
                   if (update && (update.status === "confirmed" || update.status === 1)) {
                     console.log(" 🍾 Transaction " + update.hash + " finished!");
@@ -491,6 +502,36 @@ export default function ExampleUI({
               }}
             >
               Claim {mintCount} Non-Fungible NFT Token{mintCount > 1 ? "s" : ""}
+            </Button>
+          </div>
+          <Divider />
+        </Card>
+        <Card style={{ marginTop: 32 }}>
+          <h2>TokenIDs</h2>
+          <Divider />
+          {walletNFTs.map(ID => (
+            <h3>{parseInt(ID._hex)}</h3>
+          ))}
+          <Divider />
+          <div style={{ margin: 8 }}>
+            {/* <Input
+              type="number"
+              placeholder="0x"
+              onChange={e => {
+                setAddress(e.target.value);
+              }}
+            /> */}
+            <Button
+              style={{ marginTop: 8 }}
+              onClick={async () => {
+                let tokenIds = await readContracts.ItsCodeInHere.walletOfOwner(address);
+                if (tokenIds) {
+                  console.log("323454", tokenIds);
+                  setWalletNFTs(tokenIds);
+                }
+              }}
+            >
+              NFTs
             </Button>
           </div>
           <Divider />

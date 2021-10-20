@@ -185,20 +185,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
     }
     function tokenURI(uint256 tokenId) override public view returns (string memory) {
         require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
-        string[4] memory parts;
-        parts[0] = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="black" /><text x="10" y="20" class="base">';
-
-        parts[1] = 'function tokenURI(uint256 tokenId) override public view returns (string memory) {';
-
-        parts[2] = '</text>';
-
-        parts[3] = '</svg>';
-
-        string memory output = string(abi.encodePacked(parts[0], parts[1], parts[2], parts[3]));
-        
-        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "Bag #', Strings.toString(tokenId), '", "description": "Loot", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '"}'))));
-        output = string(abi.encodePacked('data:application/json;base64,', json));
-
+        string memory output = "lol";
         return output;
     }
     function _baseURI() internal view virtual returns (string memory) {
@@ -444,18 +431,17 @@ abstract contract Ownable is Context {
 }
 
 
-contract KIA is ERC721Enumerable, Ownable {
+contract ItsCodeInHere is ERC721Enumerable, Ownable {
     uint256 public constant MAX_SUPPLY = 10000;
     uint256 public constant RESERVES = 100;
     uint256 private _conversionRate = 7;
     uint256 private _maxPerTx = 16; // Set to one higher than actual, to save gas on lte/gte checks.
-    uint256 private _price = 50000000000000000; // .05 ETH
+    // uint256 private _price = 50000000000000000; // .05 ETH
+    uint256 private _price = 0; // .05 ETH
     string private _baseTokenURI;
-    constructor(string memory baseURI, address[] memory preSaleWalletAddresses)
-        ERC721("KIA", "KIA")
-    {
-        setBaseURI(baseURI);
-    }
+    uint256 private _index = 5;
+    // constructor(string memory baseURI, address[] memory preSaleWalletAddresses)
+    constructor()ERC721("KIA", "KIA"){}
     function setBaseURI(string memory baseURI) public onlyOwner {
         _baseTokenURI = baseURI;
     }
@@ -468,6 +454,13 @@ contract KIA is ERC721Enumerable, Ownable {
     function getPrice() public view returns (uint256) {
         return _price;
     }
+
+    function next() private {
+        uint prime = 493;
+        _index += prime;
+      if(_index >= MAX_SUPPLY) _index -= MAX_SUPPLY;
+    }
+
     function mint(uint256 _count) public payable {
         uint256 totalSupply = totalSupply();
         require(
@@ -479,26 +472,22 @@ contract KIA is ERC721Enumerable, Ownable {
             totalSupply + _count <= MAX_SUPPLY,
             "This amount will exceed max supply."
         );
-        require(_price * _count <= msg.value, "Transaction value too low.");
 
         for (uint256 i; i < _count; i++) {
-            _safeMint(msg.sender, totalSupply + i);
+            next();
+            _safeMint(msg.sender, _index);
         }
     }
-    function walletOfOwner(address _owner)
-        public
-        view
-        returns (uint256[] memory)
-    {
+    function walletOfOwner(address _owner) public view returns (uint256[] memory) {
         uint256 tokenCount = balanceOf(_owner);
         if (tokenCount == 0) {
             return new uint256[](0);
         }
-        uint256[] memory tokensId = new uint256[](tokenCount);
+        uint256[] memory tokenIds = new uint256[](tokenCount);
         for (uint256 i; i < tokenCount; i++) {
-            tokensId[i] = tokenOfOwnerByIndex(_owner, i);
+            tokenIds[i] = tokenOfOwnerByIndex(_owner, i);
         }
-        return tokensId;
+        return tokenIds;
     }
     function withdrawAll() public payable onlyOwner {
         require(payable(msg.sender).send(address(this).balance));

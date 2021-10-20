@@ -7,9 +7,12 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deployer } = await getNamedAccounts();
 
   await deploy("ContractString", {
-    // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
     from: deployer,
-    //args: [ "Hello", ethers.utils.parseEther("1.5") ],
+    log: true,
+  });
+
+  await deploy("ItsCodeInHere", {
+    from: deployer,
     log: true,
   });
 
@@ -56,4 +59,4 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   });
   */
 };
-module.exports.tags = ["YourContract"];
+module.exports.tags = ["ContractString", "YourContract", "ItsCodeInHere"];
