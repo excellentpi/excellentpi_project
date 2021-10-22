@@ -432,7 +432,7 @@ abstract contract Ownable is Context {
 
 
 contract ItsCodeInHere is ERC721Enumerable, Ownable {
-    uint256 public constant MAX_SUPPLY = 10000;
+    uint256 public constant MAX_SUPPLY = 495;
     uint256 public constant RESERVES = 100;
     uint256 private _conversionRate = 7;
     uint256 private _maxPerTx = 16; // Set to one higher than actual, to save gas on lte/gte checks.
@@ -441,7 +441,7 @@ contract ItsCodeInHere is ERC721Enumerable, Ownable {
     string private _baseTokenURI;
     uint256 private _index = 5;
     // constructor(string memory baseURI, address[] memory preSaleWalletAddresses)
-    constructor()ERC721("KIA", "KIA"){}
+    constructor()ERC721("ItsCodeInHere", "CODE"){}
     function setBaseURI(string memory baseURI) public onlyOwner {
         _baseTokenURI = baseURI;
     }
@@ -455,14 +455,9 @@ contract ItsCodeInHere is ERC721Enumerable, Ownable {
         return _price;
     }
 
-    function next() private {
-        uint prime = 493;
-        _index += prime;
-      if(_index >= MAX_SUPPLY) _index -= MAX_SUPPLY;
-    }
-
     function mint(uint256 _count) public payable {
         uint256 totalSupply = totalSupply();
+        uint prime = 157;
         require(
             _count < _maxPerTx,
             "Exceeds max per transaction"
@@ -474,7 +469,8 @@ contract ItsCodeInHere is ERC721Enumerable, Ownable {
         );
 
         for (uint256 i; i < _count; i++) {
-            next();
+            _index += prime;
+            if(_index >= MAX_SUPPLY) _index -= MAX_SUPPLY;
             _safeMint(msg.sender, _index);
         }
     }
