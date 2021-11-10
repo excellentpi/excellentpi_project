@@ -1,5 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
+
+import "hardhat/console.sol";
+import "./uriGenerator.sol";
+
 interface IERC165 {
     function supportsInterface(bytes4 interfaceId) external view returns (bool);
 }
@@ -92,27 +96,7 @@ abstract contract Context {
         return msg.data;
     }
 }
-library Strings {
-    bytes16 private constant _HEX_SYMBOLS = "0123456789abcdef";
-    function toString(uint256 value) internal pure returns (string memory) {
-        if (value == 0) {
-            return "0";
-        }
-        uint256 temp = value;
-        uint256 digits;
-        while (temp != 0) {
-            digits++;
-            temp /= 10;
-        }
-        bytes memory buffer = new bytes(digits);
-        while (value != 0) {
-            digits -= 1;
-            buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));
-            value /= 10;
-        }
-        return string(buffer);
-    }
-}
+
 abstract contract ERC165 is IERC165 {
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return interfaceId == type(IERC165).interfaceId;
@@ -183,7 +167,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
     function symbol() public view virtual override returns (string memory) {
         return _symbol;
     }
-    function tokenURI(uint256 tokenId) override public view returns (string memory) {
+    function tokenURI(uint256 tokenId) virtual override public view returns (string memory) {
         require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
         string memory output = "lol";
         return output;
@@ -430,34 +414,19 @@ abstract contract Ownable is Context {
     }
 }
 
-
 contract ItsCodeInHere is ERC721Enumerable, Ownable {
     uint256 public constant MAX_SUPPLY = 495;
     uint256 public constant RESERVES = 100;
-    uint256 private _conversionRate = 7;
     uint256 private _maxPerTx = 16; // Set to one higher than actual, to save gas on lte/gte checks.
-    // uint256 private _price = 50000000000000000; // .05 ETH
-    uint256 private _price = 0; // .05 ETH
-    string private _baseTokenURI;
     uint256 private _index = 5;
-    // constructor(string memory baseURI, address[] memory preSaleWalletAddresses)
+
+    
+
     constructor()ERC721("ItsCodeInHere", "CODE"){}
-    function setBaseURI(string memory baseURI) public onlyOwner {
-        _baseTokenURI = baseURI;
-    }
-    function _baseURI() internal view virtual override returns (string memory) {
-        return _baseTokenURI;
-    }
-    function setPrice(uint256 _newWEIPrice) public onlyOwner {
-        _price = _newWEIPrice;
-    }
-    function getPrice() public view returns (uint256) {
-        return _price;
-    }
 
     function mint(uint256 _count) public payable {
         uint256 totalSupply = totalSupply();
-        uint prime = 157;
+        uint256 prime = 157;
         require(
             _count < _maxPerTx,
             "Exceeds max per transaction"
@@ -467,13 +436,13 @@ contract ItsCodeInHere is ERC721Enumerable, Ownable {
             totalSupply + _count <= MAX_SUPPLY,
             "This amount will exceed max supply."
         );
-
         for (uint256 i; i < _count; i++) {
             _index += prime;
             if(_index >= MAX_SUPPLY) _index -= MAX_SUPPLY;
             _safeMint(msg.sender, _index);
         }
     }
+
     function walletOfOwner(address _owner) public view returns (uint256[] memory) {
         uint256 tokenCount = balanceOf(_owner);
         if (tokenCount == 0) {
@@ -487,5 +456,24 @@ contract ItsCodeInHere is ERC721Enumerable, Ownable {
     }
     function withdrawAll() public payable onlyOwner {
         require(payable(msg.sender).send(address(this).balance));
+    }
+
+    function tokenURI(uint256 tokenId) override public view returns (string memory) {
+        string memory svg = URIGenerator.svgGenerator(tokenId);
+        string memory _json = Base64.encode(
+            bytes(
+            string(
+                abi.encodePacked(
+                '{"image": "data:image/svg+xml;base64,', Base64.encode(bytes(svg)), '"}'
+                )
+            )
+            )
+        );
+        console.log(svg);
+
+        string memory _output = string(
+            abi.encodePacked('data:application/json;base64,', _json)
+        );
+        return _output;
     }
 }

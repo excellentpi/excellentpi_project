@@ -16,12 +16,17 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     log: true,
   });
 
-  await deploy("YourContract", {
-    // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
+  await deploy("URIGenerator", {
     from: deployer,
-    //args: [ "Hello", ethers.utils.parseEther("1.5") ],
     log: true,
   });
+
+  // await deploy("YourContract", {
+  //   // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
+  //   from: deployer,
+  //   //args: [ "Hello", ethers.utils.parseEther("1.5") ],
+  //   log: true,
+  // });
 
   /*
     // Getting a previously deployed contract
@@ -59,4 +64,4 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   });
   */
 };
-module.exports.tags = ["ContractString", "YourContract", "ItsCodeInHere"];
+module.exports.tags = ["ContractString", "ItsCodeInHere", "URIGenerator"];

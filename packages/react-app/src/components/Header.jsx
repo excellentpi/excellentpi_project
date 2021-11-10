@@ -6,11 +6,7 @@ import React from "react";
 export default function Header() {
   return (
     <a href="" target="_blank" rel="noopener noreferrer">
-      <PageHeader
-        title="Non Fungible NFT Token"
-        subTitle="Own a piece of source, straight from the source."
-        style={{ cursor: "pointer" }}
-      />
+      <PageHeader title="It's Code in Here" subTitle="Own the source code" style={{ cursor: "pointer" }} />
     </a>
   );
 }
