@@ -3,10 +3,6 @@ pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
 
-interface IContractString {
-  function text(uint) external view returns (string memory);
-}
-
 library Strings {
     bytes16 private constant _HEX_SYMBOLS = "0123456789abcdef";
     function toString(uint256 value) internal pure returns (string memory) {
@@ -30,7 +26,6 @@ library Strings {
 }
 
 contract URIGenerator {
-    IContractString contractString;
 
     string[51] _blue = ["solidity","encodePacked","encode","ownerOf","toString","supportsInterface","balanceOf","name","symbol","_exists","_baseURI","approve","_msgSender","_approve","Approve","getApproved","isApprovedForAll","setApprovalForAll","ApprovalForAll","Approval","transferFrom","_isApprovedOrOwner","safeTransferFrom","safeTransferFrom","_safeTransfer","_transfer","_checkOnERC721Received","IERC721Receiver","onERC721Received","_safeMint","_mint","_beforeTokenTransfer","Transfer","_burn","_transfer","isContract","add","mload","tokenURI","extcodesize","sendValue","functionCall","functionCallWithValue","call","_verifyCallResult","functionStaticCall","staticcall","functionDelegateCall","delegatecall","_msgData","toHexString"];
     string[4] _green = ["function", "interface", '"', "'"];
@@ -358,12 +353,12 @@ contract URIGenerator {
         return string(abi.encodePacked(typingAnimation, cursorBlinky));
     }
 
-    function svgGenerator(uint256 tokenId) internal view returns (string memory){
+    function svgGenerator(uint256 tokenId, string memory lineString) external view returns (string memory){
         string memory _svgStart = string('<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base {fill: #0D141F; font-family: monospace; font-size: 14px;} .blue {fill: #149CA5;} .green {fill: #82D052;} .purple {fill: #C98933;} .yellow {fill: #CE0F5E;} .orange {fill: #3574B1;} .red {fill: #B6412A;} .grey {fill: #3D4D5A;} .white {fill: #A1C2CB;} .muted {fill: #1B3450;} .bright {fill: #0087A3;} .italic {font-style: italic;}</style><rect width="100%" height="100%" class="base" /><line x1="35" y1="15" x2="35" y2="335" stroke="#27527C" /><text x="10" y="20" class="base"><tspan x="5" y="10" dy="22" class="muted">');
         string memory _lineNumber = Strings.toString(tokenId);
         string memory _LineNumEnd = string('</tspan><tspan x="30" y="10">');
         string memory _svgtext = "";
-        ChunkedLine memory chunkedLines = chunker(colourifier(wordifier(contractString.text(tokenId-1))));
+        ChunkedLine memory chunkedLines = chunker(colourifier(wordifier(lineString)));
         string[] memory _chunks = chunkedLines.chunks;
         uint[] memory _lengths = chunkedLines.lengths;
         for (uint256 i; i < _chunks.length; i++) {

@@ -414,15 +414,27 @@ abstract contract Ownable is Context {
     }
 }
 
+interface IContractString {
+  function text(uint) external view returns (string memory);
+}
+
+interface IUriGenerator {
+  function svgGenerator(uint256 tokenId, string memory lineString) external view returns (string memory);
+}
+
 contract ItsCodeInHere is ERC721Enumerable, Ownable {
     uint256 public constant MAX_SUPPLY = 495;
     uint256 public constant RESERVES = 100;
     uint256 private _maxPerTx = 16; // Set to one higher than actual, to save gas on lte/gte checks.
     uint256 private _index = 5;
 
-    
+    IContractString contractString;
+    IUriGenerator uriGenerator;
 
-    constructor()ERC721("ItsCodeInHere", "CODE"){}
+    constructor()ERC721("ItsCodeInHere", "CODE"){
+        contractString = IContractString(address(0xffa7CA1AEEEbBc30C874d32C7e22F052BbEa0429));
+        uriGenerator = IUriGenerator(address(0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0));
+    }
 
     function mint(uint256 _count) public payable {
         uint256 totalSupply = totalSupply();
@@ -459,7 +471,8 @@ contract ItsCodeInHere is ERC721Enumerable, Ownable {
     }
 
     function tokenURI(uint256 tokenId) override public view returns (string memory) {
-        string memory svg = URIGenerator.svgGenerator(tokenId);
+        string memory lineString = contractString.text(tokenId-1);
+        string memory svg = uriGenerator.svgGenerator(tokenId, lineString);
         string memory _json = Base64.encode(
             bytes(
             string(
