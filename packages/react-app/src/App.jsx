@@ -407,35 +407,35 @@ function App(props) {
     setRoute(window.location.pathname);
   }, [setRoute]);
 
-  // let faucetHint = "";
-  // const faucetAvailable = localProvider && localProvider.connection && targetNetwork.name.indexOf("local") !== -1;
+  let faucetHint = "";
+  const faucetAvailable = localProvider && localProvider.connection && targetNetwork.name.indexOf("local") !== -1;
 
-  // const [faucetClicked, setFaucetClicked] = useState(false);
-  // if (
-  //   !faucetClicked &&
-  //   localProvider &&
-  //   localProvider._network &&
-  //   localProvider._network.chainId === 31337 &&
-  //   yourLocalBalance &&
-  //   ethers.utils.formatEther(yourLocalBalance) <= 0
-  // ) {
-  //   faucetHint = (
-  //     <div style={{ padding: 16 }}>
-  //       <Button
-  //         type="primary"
-  //         onClick={() => {
-  //           faucetTx({
-  //             to: address,
-  //             value: ethers.utils.parseEther("0.01"),
-  //           });
-  //           setFaucetClicked(true);
-  //         }}
-  //       >
-  //         💰 Grab funds from the faucet ⛽️
-  //       </Button>
-  //     </div>
-  //   );
-  // }
+  const [faucetClicked, setFaucetClicked] = useState(false);
+  if (
+    !faucetClicked &&
+    localProvider &&
+    localProvider._network &&
+    localProvider._network.chainId === 31337 &&
+    yourLocalBalance &&
+    ethers.utils.formatEther(yourLocalBalance) <= 0
+  ) {
+    faucetHint = (
+      <div style={{ padding: 16 }}>
+        <Button
+          type="primary"
+          onClick={() => {
+            faucetTx({
+              to: address,
+              value: ethers.utils.parseEther("0.01"),
+            });
+            setFaucetClicked(true);
+          }}
+        >
+          💰 Grab funds from the faucet ⛽️
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="App">
@@ -476,7 +476,7 @@ function App(props) {
           logoutOfWeb3Modal={logoutOfWeb3Modal}
           blockExplorer={blockExplorer}
         />
-        {/* {faucetHint} */}
+        {faucetHint}
       </div>
 
       {/* 🗺 Extra UI like gas price, eth price, faucet, and support: */}
